@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/lib/theme";
 import { AppShell } from "@/components/layout/AppShell";
 import { Splash } from "@/components/layout/Splash";
+import { AppToaster } from "@/components/ds/toast";
 
 function NotFoundComponent() {
   return (
