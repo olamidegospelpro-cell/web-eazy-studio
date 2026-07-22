@@ -132,6 +132,7 @@ function RootComponent() {
         <Splash>
           <AppShell />
         </Splash>
+        <AppToaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
