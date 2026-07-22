@@ -349,7 +349,7 @@ function DesignSystemPage() {
             description="This action can't be undone. Your files will be moved to trash."
             confirmLabel="Delete"
             tone="danger"
-            onConfirm={() => notify.success("Project deleted")}
+            onConfirm={() => { notify.success("Project deleted"); }}
           />
         </Section>
 

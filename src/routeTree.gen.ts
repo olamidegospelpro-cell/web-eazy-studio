@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluginsRouteImport } from './routes/plugins'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const PluginsRoute = PluginsRouteImport.update({
   id: '/plugins',
   path: '/plugins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/plugins' | '/settings'
+  fullPaths: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/plugins' | '/settings'
-  id: '__root__' | '/' | '/about' | '/plugins' | '/settings'
+  to: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
+  id: '__root__' | '/' | '/about' | '/design-system' | '/plugins' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  DesignSystemRoute: typeof DesignSystemRoute
   PluginsRoute: typeof PluginsRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/plugins'
       fullPath: '/plugins'
       preLoaderRoute: typeof PluginsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  DesignSystemRoute: DesignSystemRoute,
   PluginsRoute: PluginsRoute,
   SettingsRoute: SettingsRoute,
 }
