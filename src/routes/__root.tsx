@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/lib/theme";
 import { AppShell } from "@/components/layout/AppShell";
 import { Splash } from "@/components/layout/Splash";
+import { AppToaster } from "@/components/ds/toast";
 
 function NotFoundComponent() {
   return (
@@ -93,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -125,6 +132,7 @@ function RootComponent() {
         <Splash>
           <AppShell />
         </Splash>
+        <AppToaster />
       </ThemeProvider>
     </QueryClientProvider>
   );

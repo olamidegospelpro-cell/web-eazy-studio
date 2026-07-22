@@ -7,7 +7,7 @@
  * only the items change.
  */
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Puzzle, Settings, Info, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, Puzzle, Settings, Info, PanelLeftClose, PanelLeftOpen, Palette } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,6 +17,7 @@ type NavItem = { to: string; label: string; icon: ComponentType<{ className?: st
 const items: NavItem[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/plugins", label: "Plugins", icon: Puzzle },
+  { to: "/design-system", label: "Design System", icon: Palette },
   { to: "/settings", label: "Settings", icon: Settings },
   { to: "/about", label: "About", icon: Info },
 ];
