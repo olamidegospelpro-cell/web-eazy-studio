@@ -12,6 +12,7 @@ import { Logo } from "@/components/branding/Logo";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/lib/theme";
+import { SaveStatus } from "@/components/project/SaveStatus";
 
 export function TopToolbar() {
   const { resolvedTheme, toggle } = useTheme();
@@ -38,6 +39,9 @@ export function TopToolbar() {
       </div>
 
       <div className="flex-1" />
+
+      <SaveStatus />
+
 
       <Button
         size="icon"
