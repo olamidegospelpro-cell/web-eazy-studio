@@ -16,7 +16,6 @@ type PermissionMode = { mode: "read" | "readwrite" };
 interface DirHandle extends FileSystemDirectoryHandle {
   queryPermission?: (d: PermissionMode) => Promise<PermissionState>;
   requestPermission?: (d: PermissionMode) => Promise<PermissionState>;
-  values?: () => AsyncIterableIterator<FileSystemHandle>;
 }
 
 type PickerWindow = Window & {
@@ -148,11 +147,9 @@ export const nativeAdapter: FsAdapter = {
   },
 
   async listDir(location, relativePath) {
-    const dir = (await resolveDir(location, splitPath(relativePath), false)) as DirHandle;
+    const dir = await resolveDir(location, splitPath(relativePath), false);
     const entries: DirEntry[] = [];
-    const iterator = dir.values?.();
-    if (!iterator) return entries;
-    for await (const entry of iterator) {
+    for await (const entry of dir.values()) {
       entries.push({ name: entry.name, kind: entry.kind === "directory" ? "directory" : "file" });
     }
     return entries;
@@ -168,11 +165,8 @@ export const nativeAdapter: FsAdapter = {
 
   async removeRoot(location) {
     const dir = await resolveDir(location, [], false);
-    const handle = dir as DirHandle;
-    const iterator = handle.values?.();
-    if (!iterator) return;
     const names: string[] = [];
-    for await (const entry of iterator) names.push(entry.name);
+    for await (const entry of dir.values()) names.push(entry.name);
     for (const name of names) await dir.removeEntry(name, { recursive: true });
   },
 
