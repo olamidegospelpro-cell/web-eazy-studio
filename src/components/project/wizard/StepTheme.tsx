@@ -1,10 +1,10 @@
 /** Step 2 — global theme colors with a live preview. */
-import { ThemeService } from "@/lib/project";
+import { ThemeService, type ThemeColors } from "@/lib/project";
 import { ColorField } from "./ColorField";
 import { ThemePreview } from "./ThemePreview";
 import type { StepProps } from "./types";
 
-const COLOR_FIELDS: { key: keyof ReturnType<typeof keysHelper>; label: string }[] = [
+const COLOR_FIELDS: { key: keyof ThemeColors; label: string }[] = [
   { key: "primary", label: "Primary" },
   { key: "secondary", label: "Secondary" },
   { key: "accent", label: "Accent" },
@@ -15,11 +15,6 @@ const COLOR_FIELDS: { key: keyof ReturnType<typeof keysHelper>; label: string }[
   { key: "warning", label: "Warning" },
   { key: "danger", label: "Danger" },
 ];
-
-// Type helper so COLOR_FIELDS keys stay in sync with ThemeColors.
-function keysHelper() {
-  return ThemeService.create().colors;
-}
 
 export function StepTheme({ draft, patch }: StepProps) {
   return (
