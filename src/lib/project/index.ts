@@ -16,3 +16,8 @@ export { FontService, type FontOption } from "./fonts";
 export { FileSystemService, FsError } from "./fs";
 export { REQUIRED_FOLDERS, FILE_MANIFEST, FILE_THEME } from "./layout";
 export { ProjectProvider, useProject, type ProjectStore } from "./store";
+
+import { projectNameSchema, semverSchema } from "./schema";
+
+/** Schemas the wizard reuses for inline field validation. */
+export const projectSchemaHelpers = { projectName: projectNameSchema, semver: semverSchema };

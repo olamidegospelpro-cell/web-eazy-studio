@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ds";
 import { cn } from "@/lib/utils";
-import { ThemeService, useProject, projectSchemaHelpers } from "@/lib/project/ui";
+import { ThemeService, useProject, projectSchemaHelpers } from "@/lib/project";
 import { StepDetails } from "./StepDetails";
 import { StepTheme } from "./StepTheme";
 import { StepTypography } from "./StepTypography";
