@@ -14,6 +14,8 @@ import { ThemeProvider } from "@/lib/theme";
 import { AppShell } from "@/components/layout/AppShell";
 import { Splash } from "@/components/layout/Splash";
 import { AppToaster } from "@/components/ds/toast";
+import { ProjectProvider } from "@/lib/project";
+import { SessionRecoveryDialog } from "@/components/project/SaveStatus";
 
 function NotFoundComponent() {
   return (
@@ -129,9 +131,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         {/* Splash overlays the shell while the app boots. AppShell renders <Outlet /> internally. */}
-        <Splash>
-          <AppShell />
-        </Splash>
+        <ProjectProvider>
+          <Splash>
+            <AppShell />
+          </Splash>
+          <SessionRecoveryDialog />
+        </ProjectProvider>
         <AppToaster />
       </ThemeProvider>
     </QueryClientProvider>
