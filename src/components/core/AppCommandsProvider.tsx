@@ -91,7 +91,9 @@ export function AppCommandsProvider({ children }: { children: React.ReactNode })
         keywords: ["html", "zip", "publish"],
         disabled: true,
         disabledReason: "soon",
-        run: () => NotificationService.info("Export arrives in a later milestone."),
+        run: () => {
+          NotificationService.info("Export arrives in a later milestone.");
+        },
       },
       {
         id: "edit.undo",
