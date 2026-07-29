@@ -16,6 +16,9 @@ import { Splash } from "@/components/layout/Splash";
 import { AppToaster } from "@/components/ds/toast";
 import { ProjectProvider } from "@/lib/project";
 import { SessionRecoveryDialog } from "@/components/project/SaveStatus";
+import { UiProvider, DialogProvider } from "@/lib/core";
+import { AppCommandsProvider } from "@/components/core/AppCommandsProvider";
+import { AppErrorBoundary } from "@/components/core/AppErrorBoundary";
 
 function NotFoundComponent() {
   return (
@@ -130,13 +133,25 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {/* Splash overlays the shell while the app boots. AppShell renders <Outlet /> internally. */}
-        <ProjectProvider>
-          <Splash>
-            <AppShell />
-          </Splash>
-          <SessionRecoveryDialog />
-        </ProjectProvider>
+        {/* Core infrastructure wraps every feature:
+            UiProvider  → window manager + palette/search state
+            DialogProvider → imperative dialog manager
+            AppCommandsProvider → command + shortcut bindings */}
+        <UiProvider>
+          <DialogProvider>
+            <ProjectProvider>
+              <AppCommandsProvider>
+                <AppErrorBoundary scope="Application">
+                  {/* Splash overlays the shell while the app boots. */}
+                  <Splash>
+                    <AppShell />
+                  </Splash>
+                </AppErrorBoundary>
+                <SessionRecoveryDialog />
+              </AppCommandsProvider>
+            </ProjectProvider>
+          </DialogProvider>
+        </UiProvider>
         <AppToaster />
       </ThemeProvider>
     </QueryClientProvider>
