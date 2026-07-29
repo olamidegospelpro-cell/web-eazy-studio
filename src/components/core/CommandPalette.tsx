@@ -45,12 +45,7 @@ export function CommandPalette() {
   }, [commands, query]);
 
   return (
-    <CommandDialog
-      open={paletteOpen}
-      onOpenChange={setPaletteOpen}
-      title="Command palette"
-      description="Search and run WebEazy commands"
-    >
+    <CommandDialog open={paletteOpen} onOpenChange={setPaletteOpen}>
       <CommandInput
         placeholder="Type a command…"
         value={query}
