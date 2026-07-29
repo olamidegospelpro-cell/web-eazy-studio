@@ -37,7 +37,7 @@ export function AppShell() {
           <LeftSidebar />
         </AppErrorBoundary>
 
-        <ResizablePanelGroup direction="horizontal" className="min-w-0 flex-1">
+        <ResizablePanelGroup orientation="horizontal" className="min-w-0 flex-1">
           <ResizablePanel defaultSize={layout.rightPanelVisible ? 78 : 100} minSize={40}>
             <main className="h-full min-w-0 overflow-auto">
               <AppErrorBoundary scope="Page">
@@ -53,7 +53,7 @@ export function AppShell() {
                 defaultSize={22}
                 minSize={14}
                 maxSize={40}
-                onResize={(size) => setLayout({ rightPanelWidth: Math.round(size) })}
+                onResize={(size) => setLayout({ rightPanelWidth: Math.round(size.inPixels) })}
                 className="hidden md:block"
               >
                 <AppErrorBoundary scope="Properties">
