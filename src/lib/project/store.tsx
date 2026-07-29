@@ -239,18 +239,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     return () => service.stop();
   }, [bundle, preferences.autosaveEnabled, preferences.autosaveIntervalMs]);
 
-  /* ---------------- keyboard + unload guards ---------------- */
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        if (event.shiftKey) void saveAs();
-        else void save();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [save, saveAs]);
+  /* ---------------- unload guard ----------------
+   * Save shortcuts (Ctrl/⌘+S, Ctrl/⌘+Shift+S) are owned by ShortcutService
+   * in `@/lib/core` and dispatched via the "project.save" command, so this
+   * store no longer binds keyboard handlers itself. */
 
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => {

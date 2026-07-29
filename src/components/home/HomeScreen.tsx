@@ -2,7 +2,7 @@
  * Home screen — the project management surface.
  * All actions are wired to the project store; no editor functionality here.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FilePlus2, FolderOpen, Layout, Puzzle, Clock, Settings, Info, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -16,6 +16,14 @@ import { TemplateService, useProject } from "@/lib/project";
 export function HomeScreen() {
   const store = useProject();
   const [wizardOpen, setWizardOpen] = useState(false);
+
+  // The "New Project" command (palette / Ctrl+N) opens the wizard through the
+  // shared window event so no global state is needed for a one-shot action.
+  useEffect(() => {
+    const open = () => setWizardOpen(true);
+    window.addEventListener("webeazy:new-project", open);
+    return () => window.removeEventListener("webeazy:new-project", open);
+  }, []);
 
   return (
     <div className="flex flex-col">

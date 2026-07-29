@@ -1,16 +1,15 @@
 /**
  * Collapsible left navigation sidebar.
  *
- * Milestone 1 hosts app-level navigation (Home, Plugins, Settings, About).
- * In later milestones this becomes the editor's tool rail (Pages, Layers,
- * Assets, Widgets, Sections) when a project is open — the surface stays,
- * only the items change.
+ * Collapse state is owned by the window manager (`useUi().layout`) and
+ * persisted between sessions, so the rail reopens exactly as the user left it.
  */
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Puzzle, Settings, Info, PanelLeftClose, PanelLeftOpen, Palette } from "lucide-react";
-import { useState, type ComponentType } from "react";
+import { type ComponentType } from "react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUi } from "@/lib/core";
 
 type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
 
@@ -23,7 +22,8 @@ const items: NavItem[] = [
 ];
 
 export function LeftSidebar() {
-  const [collapsed, setCollapsed] = useState(true);
+  const { layout, toggleLeftSidebar } = useUi();
+  const collapsed = layout.leftSidebarCollapsed;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -64,7 +64,7 @@ export function LeftSidebar() {
 
         <button
           type="button"
-          onClick={() => setCollapsed((v) => !v)}
+          onClick={toggleLeftSidebar}
           className="flex h-9 items-center gap-2 border-t border-border px-3 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
