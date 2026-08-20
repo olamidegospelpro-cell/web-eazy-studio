@@ -37,12 +37,10 @@ function Block({
   );
 }
 
-export function StepSummary({
-  draft,
-  goToStep,
-}: StepProps & { goToStep: (step: number) => void }) {
+export function StepSummary({ draft, goToStep }: StepProps & { goToStep: (step: number) => void }) {
   const template = TemplateService.get(draft.templateId);
-  const websiteType = WEBSITE_TYPES.find((t) => t.value === draft.websiteType)?.label ?? draft.websiteType;
+  const websiteType =
+    WEBSITE_TYPES.find((t) => t.value === draft.websiteType)?.label ?? draft.websiteType;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
@@ -61,8 +59,14 @@ export function StepSummary({
         <Block title="Theme colors" onEdit={() => goToStep(2)}>
           <div className="mt-1 flex flex-wrap gap-2">
             {Object.entries(draft.theme.colors).map(([key, value]) => (
-              <div key={key} className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1">
-                <span className="h-3 w-3 rounded-sm border border-border" style={{ background: value }} />
+              <div
+                key={key}
+                className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1"
+              >
+                <span
+                  className="h-3 w-3 rounded-sm border border-border"
+                  style={{ background: value }}
+                />
                 <span className="text-[10px] capitalize text-muted-foreground">{key}</span>
                 <span className="font-mono text-[10px]">{value}</span>
               </div>

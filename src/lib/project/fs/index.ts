@@ -43,7 +43,11 @@ export const FileSystemService = {
   },
   writeJson(location: ProjectLocation, relativePath: string, value: unknown) {
     // Pretty-printed on purpose: project files must stay human-readable.
-    return adapterFor(location).writeText(location, relativePath, `${JSON.stringify(value, null, 2)}\n`);
+    return adapterFor(location).writeText(
+      location,
+      relativePath,
+      `${JSON.stringify(value, null, 2)}\n`,
+    );
   },
   readText(location: ProjectLocation, relativePath: string) {
     return adapterFor(location).readText(location, relativePath);

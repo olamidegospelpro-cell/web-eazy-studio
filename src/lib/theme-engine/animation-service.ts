@@ -27,7 +27,11 @@ export const AnimationService = {
         : animation.duration;
   },
 
-  transition(animation: AnimationTokens, properties = "all", speed: "fast" | "base" | "slow" = "base"): string {
+  transition(
+    animation: AnimationTokens,
+    properties = "all",
+    speed: "fast" | "base" | "slow" = "base",
+  ): string {
     return `${properties} ${AnimationService.duration(animation, speed)}ms ${animation.easing}`;
   },
 };

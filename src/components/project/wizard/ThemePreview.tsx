@@ -8,21 +8,18 @@ export function ThemePreview({ theme }: { theme: ProjectTheme }) {
   const vars = ThemeService.toCssVars(theme) as React.CSSProperties;
 
   return (
-    <div
-      style={vars}
-      className="overflow-hidden rounded-lg border border-border"
-    >
-      <div
-        style={{ background: "var(--wz-background)", color: "var(--wz-text)" }}
-        className="p-4"
-      >
+    <div style={vars} className="overflow-hidden rounded-lg border border-border">
+      <div style={{ background: "var(--wz-background)", color: "var(--wz-text)" }} className="p-4">
         <div className="flex items-center justify-between">
           <span style={{ fontFamily: "var(--wz-font-heading)" }} className="text-sm font-semibold">
             {theme.name || "Preview"}
           </span>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-6 rounded-full" style={{ background: "var(--wz-primary)" }} />
-            <span className="h-1.5 w-4 rounded-full" style={{ background: "var(--wz-secondary)" }} />
+            <span
+              className="h-1.5 w-4 rounded-full"
+              style={{ background: "var(--wz-secondary)" }}
+            />
             <span className="h-1.5 w-3 rounded-full" style={{ background: "var(--wz-accent)" }} />
           </div>
         </div>
@@ -76,10 +73,7 @@ export function ThemePreview({ theme }: { theme: ProjectTheme }) {
         >
           {(["success", "warning", "danger"] as const).map((key) => (
             <div key={key} className="flex items-center gap-1.5">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ background: `var(--wz-${key})` }}
-              />
+              <span className="h-2 w-2 rounded-full" style={{ background: `var(--wz-${key})` }} />
               <span
                 style={{ fontFamily: "var(--wz-font-body)" }}
                 className="text-[10px] capitalize opacity-70"

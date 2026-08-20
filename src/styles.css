@@ -37,11 +37,11 @@
 
   /* ---------- Typography ---------- */
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
   --font-mono:
-    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 
   /* ---------- Semantic surface / text ---------- */
   --color-background: var(--background);
@@ -114,8 +114,10 @@
   /* ---------- Elevation / shadows (only 4 levels) ---------- */
   --shadow-xs: 0 1px 0 0 oklch(0.2 0.02 265 / 0.04);
   --shadow-sm: 0 1px 2px 0 oklch(0.2 0.02 265 / 0.06), 0 1px 1px 0 oklch(0.2 0.02 265 / 0.04);
-  --shadow-md: 0 4px 12px -2px oklch(0.2 0.02 265 / 0.08), 0 2px 4px -2px oklch(0.2 0.02 265 / 0.06);
-  --shadow-lg: 0 12px 32px -8px oklch(0.2 0.02 265 / 0.14), 0 4px 8px -4px oklch(0.2 0.02 265 / 0.08);
+  --shadow-md:
+    0 4px 12px -2px oklch(0.2 0.02 265 / 0.08), 0 2px 4px -2px oklch(0.2 0.02 265 / 0.06);
+  --shadow-lg:
+    0 12px 32px -8px oklch(0.2 0.02 265 / 0.14), 0 4px 8px -4px oklch(0.2 0.02 265 / 0.08);
   --shadow-focus: 0 0 0 3px oklch(0.58 0.19 285 / 0.25);
 
   /* ---------- Animation durations ---------- */
@@ -130,10 +132,10 @@
  * ============================================================ */
 :root {
   /* Surfaces */
-  --background: oklch(0.985 0.004 275);   /* #F8F9FC-ish */
+  --background: oklch(0.985 0.004 275); /* #F8F9FC-ish */
   --foreground: oklch(0.22 0.02 270);
-  --canvas: oklch(0.98 0.003 275);         /* #FAFAFA-ish for canvas */
-  --card: oklch(1 0 0);                    /* pure white panels */
+  --canvas: oklch(0.98 0.003 275); /* #FAFAFA-ish for canvas */
+  --card: oklch(1 0 0); /* pure white panels */
   --card-foreground: oklch(0.22 0.02 270);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 270);
@@ -143,7 +145,7 @@
   --secondary-foreground: oklch(0.28 0.02 270);
   --muted: oklch(0.97 0.005 275);
   --muted-foreground: oklch(0.52 0.02 270);
-  --accent: oklch(0.955 0.025 290);        /* soft purple wash */
+  --accent: oklch(0.955 0.025 290); /* soft purple wash */
   --accent-foreground: oklch(0.32 0.09 285);
 
   /* Borders */
@@ -153,12 +155,12 @@
   --ring: oklch(0.58 0.19 285);
 
   /* Brand purple ramp */
-  --brand-50:  oklch(0.975 0.015 290);
+  --brand-50: oklch(0.975 0.015 290);
   --brand-100: oklch(0.945 0.035 290);
   --brand-200: oklch(0.9 0.06 288);
   --brand-300: oklch(0.83 0.1 286);
   --brand-400: oklch(0.73 0.15 285);
-  --brand-500: oklch(0.62 0.19 285);       /* primary brand */
+  --brand-500: oklch(0.62 0.19 285); /* primary brand */
   --brand-600: oklch(0.55 0.2 285);
   --brand-700: oklch(0.47 0.19 285);
   --brand-800: oklch(0.39 0.16 285);
@@ -166,7 +168,7 @@
 
   --brand: var(--brand-500);
   --brand-foreground: oklch(0.99 0 0);
-  --brand-accent: oklch(0.62 0.2 305);     /* pinker purple accent */
+  --brand-accent: oklch(0.62 0.2 305); /* pinker purple accent */
 
   --primary: var(--brand-500);
   --primary-foreground: oklch(0.99 0 0);
@@ -230,7 +232,7 @@
   --ring: oklch(0.72 0.18 285);
 
   /* Brand ramp — lift lightness for dark bg contrast */
-  --brand-50:  oklch(0.28 0.06 285);
+  --brand-50: oklch(0.28 0.06 285);
   --brand-100: oklch(0.34 0.09 285);
   --brand-200: oklch(0.4 0.12 285);
   --brand-300: oklch(0.5 0.16 285);
@@ -324,7 +326,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  code, kbd, pre, samp {
+  code,
+  kbd,
+  pre,
+  samp {
     font-family: var(--font-mono);
   }
 

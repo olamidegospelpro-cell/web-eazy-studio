@@ -9,12 +9,7 @@
 import type { ProjectLocation } from "../types";
 
 export type FsErrorCode =
-  | "cancelled"
-  | "unsupported"
-  | "permission"
-  | "not-found"
-  | "hidden-folder"
-  | "io";
+  "cancelled" | "unsupported" | "permission" | "not-found" | "hidden-folder" | "io";
 
 export class FsError extends Error {
   code: FsErrorCode;
@@ -52,7 +47,11 @@ export interface FsAdapter {
 export function splitPath(relativePath: string): string[] {
   const segments = relativePath.split("/").filter((s) => s.length > 0 && s !== ".");
   if (segments.some((s) => s === "..")) {
-    throw new FsError("io", `Illegal path "${relativePath}"`, "Paths may not escape the project folder.");
+    throw new FsError(
+      "io",
+      `Illegal path "${relativePath}"`,
+      "Paths may not escape the project folder.",
+    );
   }
   if (segments.some((s) => s.startsWith("."))) {
     throw new FsError(

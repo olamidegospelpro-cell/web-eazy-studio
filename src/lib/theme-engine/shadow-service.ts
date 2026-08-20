@@ -20,7 +20,13 @@ export const ShadowService = {
     return { ...theme, shadow: { ...theme.shadow, ...patch } };
   },
 
-  build(opts: { y: number; blur: number; spread?: number; color: string; opacity: number }): string {
+  build(opts: {
+    y: number;
+    blur: number;
+    spread?: number;
+    color: string;
+    opacity: number;
+  }): string {
     const color = ColorService.withOpacity(opts.color, opts.opacity);
     return `0 ${opts.y}px ${opts.blur}px ${opts.spread ?? 0}px ${color}`;
   },

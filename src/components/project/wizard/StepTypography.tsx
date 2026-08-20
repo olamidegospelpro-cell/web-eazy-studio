@@ -8,7 +8,13 @@
 import { useEffect, useState } from "react";
 import { Loader2, ScanSearch } from "lucide-react";
 import { Button, FormField, Input } from "@/components/ds";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FontService, ThemeService, type FontOption, type ThemeFonts } from "@/lib/project";
 import { notify } from "@/components/ds/toast";
 import { ThemePreview } from "./ThemePreview";
@@ -46,7 +52,9 @@ export function StepTypography({ draft, patch }: StepProps) {
   };
 
   const options = (current: string) =>
-    fonts.some((f) => f.family === current) ? fonts : [{ family: current, source: "generic" as const }, ...fonts];
+    fonts.some((f) => f.family === current)
+      ? fonts
+      : [{ family: current, source: "generic" as const }, ...fonts];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
@@ -58,7 +66,11 @@ export function StepTypography({ draft, patch }: StepProps) {
               : `Detected ${fonts.length} fonts. Scan for the complete installed list.`}
           </p>
           <Button size="sm" variant="outline" onClick={scanInstalled} disabled={scanning}>
-            {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ScanSearch className="h-3.5 w-3.5" />}
+            {scanning ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ScanSearch className="h-3.5 w-3.5" />
+            )}
             Detect installed fonts
           </Button>
         </div>
@@ -67,7 +79,9 @@ export function StepTypography({ draft, patch }: StepProps) {
           <FormField key={role.key} label={role.label} hint={role.hint}>
             <Select
               value={draft.theme.fonts[role.key]}
-              onValueChange={(value) => patch({ theme: ThemeService.setFont(draft.theme, role.key, value) })}
+              onValueChange={(value) =>
+                patch({ theme: ThemeService.setFont(draft.theme, role.key, value) })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -75,7 +89,9 @@ export function StepTypography({ draft, patch }: StepProps) {
               <SelectContent className="max-h-72">
                 {options(draft.theme.fonts[role.key]).map((font) => (
                   <SelectItem key={`${role.key}-${font.family}`} value={font.family}>
-                    <span style={{ fontFamily: `"${font.family}", sans-serif` }}>{font.family}</span>
+                    <span style={{ fontFamily: `"${font.family}", sans-serif` }}>
+                      {font.family}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -89,7 +105,9 @@ export function StepTypography({ draft, patch }: StepProps) {
         >
           <Input
             value={draft.theme.fonts.fallback}
-            onChange={(e) => patch({ theme: ThemeService.setFont(draft.theme, "fallback", e.target.value) })}
+            onChange={(e) =>
+              patch({ theme: ThemeService.setFont(draft.theme, "fallback", e.target.value) })
+            }
             className="font-mono text-[11px]"
             spellCheck={false}
           />

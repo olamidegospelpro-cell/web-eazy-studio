@@ -202,8 +202,18 @@ export function AppCommandsProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     const run = (id: string) => () => void CommandRegistry.execute(id);
     const bindings: ShortcutDefinition[] = [
-      { id: "project.new", accelerator: "mod+n", description: "New project", handler: run("project.new") },
-      { id: "project.open", accelerator: "mod+o", description: "Open project", handler: run("project.open") },
+      {
+        id: "project.new",
+        accelerator: "mod+n",
+        description: "New project",
+        handler: run("project.new"),
+      },
+      {
+        id: "project.open",
+        accelerator: "mod+o",
+        description: "Open project",
+        handler: run("project.open"),
+      },
       {
         id: "project.save",
         accelerator: "mod+s",

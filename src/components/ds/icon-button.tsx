@@ -37,7 +37,9 @@ type ToolbarButtonProps = Omit<IconButtonProps, "variant"> & { active?: boolean 
 
 export const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(
   ({ active, ...rest }, ref) => {
-    return <IconButton ref={ref} variant="toolbar" data-active={active ? "true" : undefined} {...rest} />;
+    return (
+      <IconButton ref={ref} variant="toolbar" data-active={active ? "true" : undefined} {...rest} />
+    );
   },
 );
 ToolbarButton.displayName = "ToolbarButton";

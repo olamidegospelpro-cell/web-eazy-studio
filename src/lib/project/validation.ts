@@ -35,21 +35,28 @@ export const ValidationService = {
     const manifest = manifestSchema.safeParse(bundle.manifest);
     if (!manifest.success) {
       for (const issue of manifest.error.issues) {
-        issues.push(fail("manifest.invalid", `project.json → ${issue.path.join(".")}: ${issue.message}`));
+        issues.push(
+          fail("manifest.invalid", `project.json → ${issue.path.join(".")}: ${issue.message}`),
+        );
       }
     }
 
     const theme = themeSchema.safeParse(bundle.theme);
     if (!theme.success) {
       for (const issue of theme.error.issues) {
-        issues.push(fail("theme.invalid", `theme.json → ${issue.path.join(".")}: ${issue.message}`));
+        issues.push(
+          fail("theme.invalid", `theme.json → ${issue.path.join(".")}: ${issue.message}`),
+        );
       }
     }
 
     if (bundle.manifest.theme !== "theme.json") {
       issues.push(
-        fail("theme.reference", `project.json points to "${bundle.manifest.theme}" instead of theme.json`,
-          "Reset the theme reference to theme.json."),
+        fail(
+          "theme.reference",
+          `project.json points to "${bundle.manifest.theme}" instead of theme.json`,
+          "Reset the theme reference to theme.json.",
+        ),
       );
     }
 
@@ -57,7 +64,11 @@ export const ValidationService = {
       const page = bundle.pages.find((p) => p.id === ref.id);
       if (!page) {
         issues.push(
-          fail("page.missing", `Page "${ref.name}" is referenced but its file is missing`, `Expected ${ref.file}.`),
+          fail(
+            "page.missing",
+            `Page "${ref.name}" is referenced but its file is missing`,
+            `Expected ${ref.file}.`,
+          ),
         );
         continue;
       }
@@ -68,12 +79,26 @@ export const ValidationService = {
     }
 
     if (!bundle.manifest.pages.some((p) => p.isHome)) {
-      issues.push(fail("page.noHome", "No page is marked as the home page", "Mark one page as home.", "warning"));
+      issues.push(
+        fail(
+          "page.noHome",
+          "No page is marked as the home page",
+          "Mark one page as home.",
+          "warning",
+        ),
+      );
     }
 
     for (const plugin of bundle.manifest.plugins) {
       if (!plugin.id || !plugin.version) {
-        issues.push(fail("plugin.reference", `Plugin reference "${plugin.name}" is incomplete`, undefined, "warning"));
+        issues.push(
+          fail(
+            "plugin.reference",
+            `Plugin reference "${plugin.name}" is incomplete`,
+            undefined,
+            "warning",
+          ),
+        );
       }
     }
 
@@ -104,8 +129,13 @@ export const ValidationService = {
       const parsed = manifestSchema.safeParse(raw);
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
-          issues.push(fail("manifest.invalid", `project.json → ${issue.path.join(".")}: ${issue.message}`,
-            "Restore project.json from the /backups folder."));
+          issues.push(
+            fail(
+              "manifest.invalid",
+              `project.json → ${issue.path.join(".")}: ${issue.message}`,
+              "Restore project.json from the /backups folder.",
+            ),
+          );
         }
       } else {
         manifest = parsed.data as ProjectManifest;
@@ -121,23 +151,44 @@ export const ValidationService = {
       }
     } catch (error) {
       issues.push(
-        fail("manifest.unreadable", error instanceof FsError ? error.message : "project.json could not be read",
-          error instanceof FsError ? error.suggestion : undefined),
+        fail(
+          "manifest.unreadable",
+          error instanceof FsError ? error.message : "project.json could not be read",
+          error instanceof FsError ? error.suggestion : undefined,
+        ),
       );
     }
 
     if (!(await FileSystemService.exists(location, "theme.json"))) {
-      issues.push(fail("theme.missing", "theme.json is missing", "WebEazy can recreate it with default values.", "warning"));
+      issues.push(
+        fail(
+          "theme.missing",
+          "theme.json is missing",
+          "WebEazy can recreate it with default values.",
+          "warning",
+        ),
+      );
     }
 
     if (!(await FileSystemService.exists(location, "pages"))) {
-      issues.push(fail("pages.missing", "The /pages folder is missing", "Page data cannot be recovered without it."));
+      issues.push(
+        fail(
+          "pages.missing",
+          "The /pages folder is missing",
+          "Page data cannot be recovered without it.",
+        ),
+      );
     }
 
     for (const folder of REQUIRED_FOLDERS) {
       if (!(await FileSystemService.exists(location, folder))) {
         issues.push(
-          fail("folder.missing", `Folder /${folder} is missing`, "WebEazy will recreate it on the next save.", "warning"),
+          fail(
+            "folder.missing",
+            `Folder /${folder} is missing`,
+            "WebEazy will recreate it on the next save.",
+            "warning",
+          ),
         );
       }
     }
@@ -145,7 +196,13 @@ export const ValidationService = {
     if (manifest) {
       for (const ref of manifest.pages) {
         if (!(await FileSystemService.exists(location, ref.file))) {
-          issues.push(fail("page.missing", `Page file ${ref.file} is missing`, `Referenced by page "${ref.name}".`));
+          issues.push(
+            fail(
+              "page.missing",
+              `Page file ${ref.file} is missing`,
+              `Referenced by page "${ref.name}".`,
+            ),
+          );
         }
       }
     }
@@ -157,7 +214,11 @@ export const ValidationService = {
   heal(manifest: ProjectManifest, theme: ProjectTheme, pages: PageDocument[]) {
     const known = new Set(pages.map((p) => p.id));
     return {
-      manifest: { ...manifest, theme: "theme.json", pages: manifest.pages.filter((p) => known.has(p.id)) },
+      manifest: {
+        ...manifest,
+        theme: "theme.json",
+        pages: manifest.pages.filter((p) => known.has(p.id)),
+      },
       theme,
       pages,
     };

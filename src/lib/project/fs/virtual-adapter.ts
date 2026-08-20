@@ -57,7 +57,11 @@ export const virtualAdapter: FsAdapter = {
     const path = join(location, relativePath);
     const value = await idb.get<string>(STORE_FILES, path);
     if (typeof value !== "string") {
-      throw new FsError("not-found", `Missing file: ${relativePath}`, "The project may be incomplete.");
+      throw new FsError(
+        "not-found",
+        `Missing file: ${relativePath}`,
+        "The project may be incomplete.",
+      );
     }
     return value;
   },
@@ -77,7 +81,10 @@ export const virtualAdapter: FsAdapter = {
       const rest = key.slice(prefix.length).replace(/\/$/, "");
       if (!rest) continue;
       const [head, ...tail] = rest.split("/");
-      entries.set(head, { name: head, kind: tail.length || key.endsWith("/") ? "directory" : "file" });
+      entries.set(head, {
+        name: head,
+        kind: tail.length || key.endsWith("/") ? "directory" : "file",
+      });
     }
     return [...entries.values()];
   },

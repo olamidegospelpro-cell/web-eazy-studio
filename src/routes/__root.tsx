@@ -88,7 +88,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "WebEazy — Design Beautiful Websites Faster" },
       {
         name: "description",
-        content: "Desktop-first visual website builder. Local ownership, JSON export, no vendor lock-in.",
+        content:
+          "Desktop-first visual website builder. Local ownership, JSON export, no vendor lock-in.",
       },
       { name: "author", content: "WebEazy" },
       { property: "og:title", content: "WebEazy — Design Beautiful Websites Faster" },

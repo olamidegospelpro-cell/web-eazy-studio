@@ -68,7 +68,11 @@ export function LeftSidebar() {
           className="flex h-9 items-center gap-2 border-t border-border px-3 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {collapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
           {!collapsed && <span>Collapse</span>}
         </button>
       </aside>

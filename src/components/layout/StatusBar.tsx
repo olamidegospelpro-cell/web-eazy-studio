@@ -5,17 +5,7 @@
  * milestones only need to add a segment, never re-plumb state.
  */
 import { useEffect, useState } from "react";
-import {
-  Check,
-  CircleDot,
-  Hammer,
-  Loader2,
-  Moon,
-  Sun,
-  Terminal,
-  Timer,
-  Zap,
-} from "lucide-react";
+import { Check, CircleDot, Hammer, Loader2, Moon, Sun, Terminal, Timer, Zap } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useProject } from "@/lib/project";
 import { bus, log, useUi, formatAccelerator, type LogEntry } from "@/lib/core";
@@ -77,7 +67,10 @@ export function StatusBar() {
         {bundle ? `${bundle.manifest.name}${dirty ? " •" : ""}` : "No project open"}
       </Segment>
       <span className="opacity-30">|</span>
-      <Segment icon={saveState === "saving" ? Loader2 : Timer} title="Autosave settings live in Settings">
+      <Segment
+        icon={saveState === "saving" ? Loader2 : Timer}
+        title="Autosave settings live in Settings"
+      >
         {saveState === "saving" ? "Saving…" : autosave}
       </Segment>
 

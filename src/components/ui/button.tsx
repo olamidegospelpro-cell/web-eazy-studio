@@ -18,24 +18,18 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-brand-600 active:bg-brand-700",
-        brand:
-          "bg-brand text-brand-foreground shadow-xs hover:bg-brand-600 active:bg-brand-700",
+        brand: "bg-brand text-brand-foreground shadow-xs hover:bg-brand-600 active:bg-brand-700",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground",
         outline:
           "border border-border bg-card text-foreground shadow-xs hover:bg-accent hover:text-accent-foreground",
-        ghost:
-          "text-foreground hover:bg-accent hover:text-accent-foreground",
+        ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
         toolbar:
           "text-toolbar-foreground hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground",
-        link:
-          "text-brand underline-offset-4 hover:underline p-0 h-auto",
-        destructive:
-          "bg-danger text-danger-foreground shadow-xs hover:bg-danger/90",
-        success:
-          "bg-success text-success-foreground shadow-xs hover:bg-success/90",
-        warning:
-          "bg-warning text-warning-foreground shadow-xs hover:bg-warning/90",
+        link: "text-brand underline-offset-4 hover:underline p-0 h-auto",
+        destructive: "bg-danger text-danger-foreground shadow-xs hover:bg-danger/90",
+        success: "bg-success text-success-foreground shadow-xs hover:bg-success/90",
+        warning: "bg-warning text-warning-foreground shadow-xs hover:bg-warning/90",
       },
       size: {
         xs: "h-6 px-2 text-[11px] [&_svg]:size-3",
@@ -56,8 +50,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

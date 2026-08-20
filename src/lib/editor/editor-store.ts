@@ -56,12 +56,18 @@ class EditorStore {
     const node = this.document.nodes[nodeId];
     if (!node || node.type === "root") return;
     this.commit(
-      { ...this.document, nodes: { ...this.document.nodes, [nodeId]: { ...node, locked: !node.locked } } },
+      {
+        ...this.document,
+        nodes: { ...this.document.nodes, [nodeId]: { ...node, locked: !node.locked } },
+      },
       node.locked ? `Unlock ${node.name}` : `Lock ${node.name}`,
     );
   }
 
-  updateNode(nodeId: NodeId, patch: Partial<Pick<import("./document-types").EditorNode, "props" | "styles" | "name">>) {
+  updateNode(
+    nodeId: NodeId,
+    patch: Partial<Pick<import("./document-types").EditorNode, "props" | "styles" | "name">>,
+  ) {
     const node = this.document.nodes[nodeId];
     if (!node) return;
     this.commit(
@@ -107,5 +113,9 @@ class EditorStore {
 export const editorStore = new EditorStore();
 
 export function useEditorStore(): EditorState {
-  return useSyncExternalStore(editorStore.subscribe, editorStore.getSnapshot, editorStore.getSnapshot);
+  return useSyncExternalStore(
+    editorStore.subscribe,
+    editorStore.getSnapshot,
+    editorStore.getSnapshot,
+  );
 }

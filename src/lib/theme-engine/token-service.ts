@@ -37,13 +37,15 @@ export const TokenService = {
     const palette = TokenService.resolvePalette(theme, mode);
     const map: TokenMap = {};
     for (const [key, value] of Object.entries(palette)) map[`colors.${key}`] = value;
-    for (const [key, value] of Object.entries(theme.typography)) map[`typography.${key}`] = String(value);
+    for (const [key, value] of Object.entries(theme.typography))
+      map[`typography.${key}`] = String(value);
     for (const [key, value] of Object.entries(theme.spacing)) map[`spacing.${key}`] = String(value);
     for (const [key, value] of Object.entries(theme.radius)) map[`radius.${key}`] = String(value);
     for (const [key, value] of Object.entries(theme.shadow)) map[`shadow.${key}`] = value;
     for (const [key, value] of Object.entries(theme.border))
       map[`border.${key}`] = TokenService.resolveColor(String(value), palette);
-    for (const [key, value] of Object.entries(theme.animation)) map[`animation.${key}`] = String(value);
+    for (const [key, value] of Object.entries(theme.animation))
+      map[`animation.${key}`] = String(value);
     return map;
   },
 

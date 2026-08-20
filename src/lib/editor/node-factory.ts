@@ -101,10 +101,7 @@ export function detachChild(
   };
 }
 
-export function collectDescendants(
-  nodes: Record<NodeId, EditorNode>,
-  nodeId: NodeId,
-): NodeId[] {
+export function collectDescendants(nodes: Record<NodeId, EditorNode>, nodeId: NodeId): NodeId[] {
   const node = nodes[nodeId];
   if (!node) return [];
   return node.childIds.flatMap((childId) => [childId, ...collectDescendants(nodes, childId)]);

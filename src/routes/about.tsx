@@ -9,7 +9,8 @@ export const Route = createFileRoute("/about")({
       { title: "About · WebEazy" },
       {
         name: "description",
-        content: "WebEazy is a local-first visual website builder focused on simplicity and export freedom.",
+        content:
+          "WebEazy is a local-first visual website builder focused on simplicity and export freedom.",
       },
       { property: "og:title", content: "About · WebEazy" },
       {

@@ -54,7 +54,9 @@ type FontWindow = Window & {
 
 export const FontService = {
   get supportsLocalFonts() {
-    return typeof window !== "undefined" && typeof (window as FontWindow).queryLocalFonts === "function";
+    return (
+      typeof window !== "undefined" && typeof (window as FontWindow).queryLocalFonts === "function"
+    );
   },
 
   /** Permission-free detection — safe to call on mount. */
@@ -70,7 +72,9 @@ export const FontService = {
       }
     }
     if (found.length === 0) {
-      found.push(...PROBE_LIST.slice(0, 8).map((family) => ({ family, source: "probed" as const })));
+      found.push(
+        ...PROBE_LIST.slice(0, 8).map((family) => ({ family, source: "probed" as const })),
+      );
     }
     return [...found, ...GENERICS.map((family) => ({ family, source: "generic" as const }))];
   },

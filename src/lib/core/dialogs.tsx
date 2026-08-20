@@ -30,7 +30,11 @@ interface OpenDialog extends DialogOptions {
 export interface DialogApi {
   confirm(options: DialogOptions): Promise<boolean>;
   warn(options: DialogOptions): Promise<boolean>;
-  confirmDelete(options: { name: string; description?: string; confirmLabel?: string }): Promise<boolean>;
+  confirmDelete(options: {
+    name: string;
+    description?: string;
+    confirmLabel?: string;
+  }): Promise<boolean>;
   info(options: DialogOptions): Promise<boolean>;
   error(options: DialogOptions): Promise<boolean>;
   open(kind: DialogKind, options: DialogOptions): Promise<boolean>;

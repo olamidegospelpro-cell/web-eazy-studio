@@ -28,7 +28,8 @@ export interface ShortcutDefinition {
 }
 
 export const isMac =
-  typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
+  typeof navigator !== "undefined" &&
+  /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
 
 /** Human label for the UI: "mod+shift+p" → "⌘⇧P" / "Ctrl+Shift+P". */
 export function formatAccelerator(accelerator: string): string {
@@ -105,7 +106,8 @@ class Shortcuts {
   list(): { accelerator: string; id: string; description: string }[] {
     const out: { accelerator: string; id: string; description: string }[] = [];
     for (const [combo, defs] of this.registry) {
-      for (const def of defs) out.push({ accelerator: combo, id: def.id, description: def.description });
+      for (const def of defs)
+        out.push({ accelerator: combo, id: def.id, description: def.description });
     }
     return out.sort((a, b) => a.id.localeCompare(b.id));
   }

@@ -152,13 +152,7 @@ export interface ThemeDocument {
 export type TokenMap = Record<string, string>;
 
 export type TokenGroup =
-  | "colors"
-  | "typography"
-  | "spacing"
-  | "radius"
-  | "shadow"
-  | "border"
-  | "animation";
+  "colors" | "typography" | "spacing" | "radius" | "shadow" | "border" | "animation";
 
 export interface ThemeIssue {
   level: "error" | "warning";

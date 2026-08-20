@@ -1,7 +1,16 @@
 /** Recent projects list with per-project actions (metadata-only removal vs. file deletion). */
 import { useState } from "react";
 import { FolderOpen, MoreHorizontal, Copy, Pencil, FolderSearch, X, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, Dialog, DialogContent, DialogHeader, DialogTitle, EmptyState, Input } from "@/components/ds";
+import {
+  Button,
+  ConfirmDialog,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  EmptyState,
+  Input,
+} from "@/components/ds";
 import { Surface } from "@/components/ds/cards";
 import {
   DropdownMenu,
@@ -55,17 +64,26 @@ export function RecentProjectsPanel({ onNewProject }: { onNewProject: () => void
             <div className="flex items-start justify-between gap-2 border-t border-border px-3 py-2">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{recent.name}</p>
-                <p className="truncate font-mono text-[10px] text-muted-foreground" title={recent.location.path}>
+                <p
+                  className="truncate font-mono text-[10px] text-muted-foreground"
+                  title={recent.location.path}
+                >
                   {recent.location.path}
                 </p>
                 <p className="mt-1 text-[10px] text-muted-foreground/80">
-                  {WEBSITE_TYPES.find((t) => t.value === recent.websiteType)?.label ?? recent.websiteType} ·
-                  created {formatDate(recent.createdAt)} · opened {formatDate(recent.lastOpened)}
+                  {WEBSITE_TYPES.find((t) => t.value === recent.websiteType)?.label ??
+                    recent.websiteType}{" "}
+                  · created {formatDate(recent.createdAt)} · opened {formatDate(recent.lastOpened)}
                 </p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Actions for ${recent.name}`}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    aria-label={`Actions for ${recent.name}`}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -81,7 +99,9 @@ export function RecentProjectsPanel({ onNewProject }: { onNewProject: () => void
                   >
                     <Pencil className="h-3.5 w-3.5" /> Rename
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => void store.duplicateRecent(recent, `${recent.name} copy`)}>
+                  <DropdownMenuItem
+                    onClick={() => void store.duplicateRecent(recent, `${recent.name} copy`)}
+                  >
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => void store.revealRecent(recent)}>
@@ -105,11 +125,16 @@ export function RecentProjectsPanel({ onNewProject }: { onNewProject: () => void
           <DialogHeader>
             <DialogTitle className="text-base">Rename project</DialogTitle>
           </DialogHeader>
-          <Input value={renameValue} onChange={(e) => setRenameValue(e.target.value)} maxLength={60} />
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            maxLength={60}
+          />
           <Button
             size="sm"
             onClick={() => {
-              if (renaming && renameValue.trim().length > 1) void store.renameRecent(renaming.id, renameValue.trim());
+              if (renaming && renameValue.trim().length > 1)
+                void store.renameRecent(renaming.id, renameValue.trim());
               setRenaming(null);
             }}
           >

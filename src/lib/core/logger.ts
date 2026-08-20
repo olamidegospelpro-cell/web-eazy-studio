@@ -75,7 +75,14 @@ class Logger {
     const entry: LogEntry = { id: ++this.seq, level, scope, message, data, at: Date.now() };
     this.buffer = [...this.buffer, entry].slice(-MAX_BUFFER);
     if (this.mirrorToConsole) {
-      const fn = level === "debug" ? console.debug : level === "info" ? console.info : level === "warn" ? console.warn : console.error;
+      const fn =
+        level === "debug"
+          ? console.debug
+          : level === "info"
+            ? console.info
+            : level === "warn"
+              ? console.warn
+              : console.error;
       fn(`[${scope}] ${message}`, data ?? "");
     }
     this.notify();

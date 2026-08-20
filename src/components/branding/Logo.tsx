@@ -22,7 +22,14 @@ export function Logo({ className, showWordmark = true, size = 28 }: LogoProps) {
         aria-hidden
       >
         <defs>
-          <linearGradient id="we-brand" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="we-brand"
+            x1="0"
+            y1="0"
+            x2="32"
+            y2="32"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0" stopColor="var(--color-brand)" />
             <stop offset="1" stopColor="var(--color-brand-accent)" />
           </linearGradient>
@@ -39,9 +46,7 @@ export function Logo({ className, showWordmark = true, size = 28 }: LogoProps) {
         <circle cx="22" cy="20" r="1.5" fill="white" />
       </svg>
       {showWordmark && (
-        <span className="text-[15px] font-semibold tracking-tight text-foreground">
-          WebEazy
-        </span>
+        <span className="text-[15px] font-semibold tracking-tight text-foreground">WebEazy</span>
       )}
     </div>
   );

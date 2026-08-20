@@ -6,7 +6,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Logo } from "@/components/branding/Logo";
 
-export function Splash({ children, minDurationMs = 700 }: { children: ReactNode; minDurationMs?: number }) {
+export function Splash({
+  children,
+  minDurationMs = 700,
+}: {
+  children: ReactNode;
+  minDurationMs?: number;
+}) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -23,7 +29,9 @@ export function Splash({ children, minDurationMs = 700 }: { children: ReactNode;
             <Logo size={56} showWordmark={false} />
             <div className="flex flex-col items-center gap-2">
               <span className="text-2xl font-semibold tracking-tight text-foreground">WebEazy</span>
-              <span className="text-xs text-muted-foreground">Design beautiful websites faster</span>
+              <span className="text-xs text-muted-foreground">
+                Design beautiful websites faster
+              </span>
             </div>
             <div className="mt-4 h-1 w-40 overflow-hidden rounded-full bg-muted">
               <div className="h-full w-1/2 animate-[splash_1.2s_ease-in-out_infinite] bg-brand" />

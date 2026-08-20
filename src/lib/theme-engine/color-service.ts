@@ -113,7 +113,9 @@ export const ColorService = {
     const h = Math.round(hsl.h);
     const s = Math.round(hsl.s);
     const l = Math.round(hsl.l);
-    return hsl.a < 1 ? `hsla(${h}, ${s}%, ${l}%, ${Number(hsl.a.toFixed(3))})` : `hsl(${h}, ${s}%, ${l}%)`;
+    return hsl.a < 1
+      ? `hsla(${h}, ${s}%, ${l}%, ${Number(hsl.a.toFixed(3))})`
+      : `hsl(${h}, ${s}%, ${l}%)`;
   },
 
   toHsl(value: string | Rgb): Hsl {
@@ -227,7 +229,9 @@ export const ColorService = {
   toggleFavorite(value: string): string[] {
     const hex = ColorService.toHex(value, true);
     const current = readList(FAVORITES_KEY);
-    const next = current.includes(hex) ? current.filter((c) => c !== hex) : [hex, ...current].slice(0, 24);
+    const next = current.includes(hex)
+      ? current.filter((c) => c !== hex)
+      : [hex, ...current].slice(0, 24);
     writeList(FAVORITES_KEY, next);
     return next;
   },

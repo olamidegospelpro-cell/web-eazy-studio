@@ -75,7 +75,11 @@ export interface ProjectStore {
 
 const ProjectContext = createContext<ProjectStore | null>(null);
 
-function describe(error: unknown): { message: string; suggestion?: string; report?: ValidationReport } {
+function describe(error: unknown): {
+  message: string;
+  suggestion?: string;
+  report?: ValidationReport;
+} {
   if (error instanceof ProjectError)
     return { message: error.message, suggestion: error.suggestion, report: error.report };
   if (error instanceof FsError) return { message: error.message, suggestion: error.suggestion };
@@ -180,7 +184,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const chooseLocationFor = useCallback(async (name: string) => {
     const suggested = ProjectService.suggestFolderName(name);
-    if (FileSystemService.capabilities.nativePicker) return FileSystemService.chooseLocation(suggested);
+    if (FileSystemService.capabilities.nativePicker)
+      return FileSystemService.chooseLocation(suggested);
     return FileSystemService.virtualLocation(suggested);
   }, []);
 
@@ -263,7 +268,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       bundleRef.current = created;
       setLocation(null);
       locationRef.current = null;
-      changes.current = { theme: true, manifest: true, pageIds: new Set(created.pages.map((p) => p.id)) };
+      changes.current = {
+        theme: true,
+        manifest: true,
+        pageIds: new Set(created.pages.map((p) => p.id)),
+      };
       setDirtyFlag(true);
       setSaveState("dirty");
       setLastError(null);

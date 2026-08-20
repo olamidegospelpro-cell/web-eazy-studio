@@ -16,7 +16,10 @@ export function Spinner({
     <span
       role="status"
       aria-label="Loading"
-      className={cn("inline-block animate-spin rounded-full border-2 border-current border-t-transparent text-brand", className)}
+      className={cn(
+        "inline-block animate-spin rounded-full border-2 border-current border-t-transparent text-brand",
+        className,
+      )}
       style={{ width: px, height: px }}
     />
   );

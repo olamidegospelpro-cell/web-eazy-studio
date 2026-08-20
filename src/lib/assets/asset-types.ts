@@ -37,5 +37,7 @@ export function matchesAssetFilter(asset: AssetRecord, filter: AssetFilter): boo
   if (filter.favorite !== undefined && asset.favorite !== filter.favorite) return false;
   if (!filter.query) return true;
   const query = filter.query.trim().toLowerCase();
-  return [asset.name, asset.relativePath, asset.mimeType, ...asset.tags].some((value) => value.toLowerCase().includes(query));
+  return [asset.name, asset.relativePath, asset.mimeType, ...asset.tags].some((value) =>
+    value.toLowerCase().includes(query),
+  );
 }

@@ -9,13 +9,7 @@
 import { log } from "./logger";
 
 export type CommandCategory =
-  | "Project"
-  | "File"
-  | "Edit"
-  | "View"
-  | "Navigate"
-  | "Help"
-  | "Plugins";
+  "Project" | "File" | "Edit" | "View" | "Navigate" | "Help" | "Plugins";
 
 export interface Command {
   id: string;

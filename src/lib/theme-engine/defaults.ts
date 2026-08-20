@@ -5,11 +5,7 @@
  * surfaces, flat modern shadows. Templates and imported themes override the
  * same structure, never a different one.
  */
-import {
-  THEME_ENGINE_VERSION,
-  type ColorTokens,
-  type ThemeDocument,
-} from "./types";
+import { THEME_ENGINE_VERSION, type ColorTokens, type ThemeDocument } from "./types";
 
 export const LIGHT_COLORS: ColorTokens = {
   primary: "#6C4CF1",

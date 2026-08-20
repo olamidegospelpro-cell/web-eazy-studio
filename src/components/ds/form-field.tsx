@@ -36,9 +36,13 @@ export function FormField({
         "aria-describedby": describedBy,
       })}
       {error ? (
-        <p id={`${id}-error`} className="text-[11px] text-danger">{error}</p>
+        <p id={`${id}-error`} className="text-[11px] text-danger">
+          {error}
+        </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-[11px] text-muted-foreground">{hint}</p>
+        <p id={`${id}-hint`} className="text-[11px] text-muted-foreground">
+          {hint}
+        </p>
       ) : null}
     </div>
   );

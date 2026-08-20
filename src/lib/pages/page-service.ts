@@ -6,22 +6,34 @@ export class PageService {
   private documents = new Map<PageId, EditorDocument>();
 
   list(): EditorPage[] {
-    return [...this.pages.values()].sort((a, b) => Number(Boolean(b.isHome)) - Number(Boolean(a.isHome)) || a.name.localeCompare(b.name));
+    return [...this.pages.values()].sort(
+      (a, b) =>
+        Number(Boolean(b.isHome)) - Number(Boolean(a.isHome)) || a.name.localeCompare(b.name),
+    );
   }
 
-  get(id: PageId): EditorPage | undefined { return this.pages.get(id); }
-  getDocument(id: PageId): EditorDocument | undefined { return this.documents.get(id); }
+  get(id: PageId): EditorPage | undefined {
+    return this.pages.get(id);
+  }
+  getDocument(id: PageId): EditorDocument | undefined {
+    return this.documents.get(id);
+  }
 
   create(name = "New Page", slug = "new-page"): EditorPage {
     const pageId = createNodeId("page");
     const document = createStarterDocument(pageId);
     const now = new Date().toISOString();
     const page: EditorPage = {
-      id: pageId, name, slug, title: name, description: "",
+      id: pageId,
+      name,
+      slug,
+      title: name,
+      description: "",
       rootNodeId: document.rootNodeId,
       nodeIds: Object.keys(document.nodes),
       isHome: this.pages.size === 0,
-      createdAt: now, updatedAt: now,
+      createdAt: now,
+      updatedAt: now,
     };
     this.pages.set(page.id, page);
     this.documents.set(page.id, document);
@@ -41,7 +53,10 @@ export class PageService {
     return result;
   }
 
-  update(id: PageId, patch: Partial<Pick<EditorPage, "name" | "slug" | "title" | "description">>): void {
+  update(
+    id: PageId,
+    patch: Partial<Pick<EditorPage, "name" | "slug" | "title" | "description">>,
+  ): void {
     const page = this.pages.get(id);
     if (!page) throw new Error(`Page "${id}" does not exist.`);
     this.pages.set(id, { ...page, ...patch, updatedAt: new Date().toISOString() });
@@ -51,7 +66,12 @@ export class PageService {
     const page = this.pages.get(id);
     if (!page) throw new Error(`Page "${id}" does not exist.`);
     this.documents.set(id, document);
-    this.pages.set(id, { ...page, rootNodeId: document.rootNodeId, nodeIds: Object.keys(document.nodes), updatedAt: new Date().toISOString() });
+    this.pages.set(id, {
+      ...page,
+      rootNodeId: document.rootNodeId,
+      nodeIds: Object.keys(document.nodes),
+      updatedAt: new Date().toISOString(),
+    });
   }
 
   delete(id: PageId): void {

@@ -25,7 +25,9 @@ export function StepTheme({ draft, patch }: StepProps) {
             key={field.key}
             label={field.label}
             value={draft.theme.colors[field.key]}
-            onChange={(value) => patch({ theme: ThemeService.setColor(draft.theme, field.key, value) })}
+            onChange={(value) =>
+              patch({ theme: ThemeService.setColor(draft.theme, field.key, value) })
+            }
           />
         ))}
       </div>

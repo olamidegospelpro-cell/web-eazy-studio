@@ -3,7 +3,16 @@
  * All actions are wired to the project store; no editor functionality here.
  */
 import { useEffect, useState } from "react";
-import { FilePlus2, FolderOpen, Layout, Puzzle, Clock, Settings, Info, Sparkles } from "lucide-react";
+import {
+  FilePlus2,
+  FolderOpen,
+  Layout,
+  Puzzle,
+  Clock,
+  Settings,
+  Info,
+  Sparkles,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/common/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -33,7 +42,8 @@ export function HomeScreen() {
         actions={
           store.bundle ? (
             <span className="text-xs text-muted-foreground">
-              Open: <span className="font-medium text-foreground">{store.bundle.manifest.name}</span>
+              Open:{" "}
+              <span className="font-medium text-foreground">{store.bundle.manifest.name}</span>
             </span>
           ) : undefined
         }
@@ -110,7 +120,12 @@ export function HomeScreen() {
         <section className="grid gap-3 sm:grid-cols-3">
           {[
             { to: "/plugins", label: "Plugins", hint: "Extend WebEazy.", icon: Puzzle },
-            { to: "/settings", label: "Settings", hint: "Saving, autosave, theme.", icon: Settings },
+            {
+              to: "/settings",
+              label: "Settings",
+              hint: "Saving, autosave, theme.",
+              icon: Settings,
+            },
             { to: "/about", label: "About", hint: "Version and philosophy.", icon: Info },
           ].map((item) => (
             <Link key={item.to} to={item.to} className="contents">

@@ -25,7 +25,12 @@ const tabs = [
   { id: "console", label: "Console", icon: Terminal, empty: "No log output yet." },
   { id: "build", label: "Build", icon: Hammer, empty: "No build has run." },
   { id: "errors", label: "Errors", icon: AlertCircle, empty: "No errors." },
-  { id: "a11y", label: "Accessibility", icon: Accessibility, empty: "Accessibility checks not run." },
+  {
+    id: "a11y",
+    label: "Accessibility",
+    icon: Accessibility,
+    empty: "Accessibility checks not run.",
+  },
   { id: "perf", label: "Performance", icon: Gauge, empty: "No performance data." },
 ] as const;
 
@@ -38,7 +43,11 @@ const LEVEL_CLASS: Record<LogEntry["level"], string> = {
 
 function LogList({ entries, empty }: { entries: LogEntry[]; empty: string }) {
   if (entries.length === 0)
-    return <div className="flex h-full items-center justify-center text-xs text-muted-foreground">{empty}</div>;
+    return (
+      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+        {empty}
+      </div>
+    );
   return (
     <ul className="flex flex-col gap-0.5 p-2 font-mono text-[11px]">
       {entries.map((entry) => (
@@ -46,7 +55,9 @@ function LogList({ entries, empty }: { entries: LogEntry[]; empty: string }) {
           <span className="shrink-0 text-muted-foreground/60">
             {new Date(entry.at).toLocaleTimeString()}
           </span>
-          <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[entry.level])}>{entry.level}</span>
+          <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[entry.level])}>
+            {entry.level}
+          </span>
           <span className="shrink-0 text-muted-foreground/80">[{entry.scope}]</span>
           <span className="min-w-0 break-all text-foreground/90">{entry.message}</span>
         </li>

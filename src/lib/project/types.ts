@@ -12,7 +12,8 @@ export const APP_NAME = "WebEazy";
 export const APP_VERSION = "0.3.0";
 export const PROJECT_SCHEMA_VERSION = 1;
 
-export type WebsiteType = "landing" | "portfolio" | "business" | "blog" | "docs" | "store" | "custom";
+export type WebsiteType =
+  "landing" | "portfolio" | "business" | "blog" | "docs" | "store" | "custom";
 
 export const WEBSITE_TYPES: { value: WebsiteType; label: string; hint: string }[] = [
   { value: "landing", label: "Landing page", hint: "Single-page marketing site" },

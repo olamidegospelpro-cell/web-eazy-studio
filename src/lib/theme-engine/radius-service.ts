@@ -1,7 +1,13 @@
 /** RadiusService — corner radius tokens. */
 import type { RadiusTokens, ThemeDocument } from "./types";
 
-export const RADIUS_TOKEN_KEYS = ["sm", "md", "lg", "xl", "circular"] as const satisfies readonly (keyof RadiusTokens)[];
+export const RADIUS_TOKEN_KEYS = [
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "circular",
+] as const satisfies readonly (keyof RadiusTokens)[];
 
 export const RadiusService = {
   px(radius: RadiusTokens, key: keyof RadiusTokens): string {

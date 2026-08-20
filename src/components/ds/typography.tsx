@@ -51,7 +51,13 @@ const defaultTag: Record<NonNullable<BaseProps["variant"]>, keyof React.JSX.Intr
   kbd: "kbd",
 };
 
-export function Text({ variant = "body", asChild, className, children, ...rest }: BaseProps & React.HTMLAttributes<HTMLElement>) {
+export function Text({
+  variant = "body",
+  asChild,
+  className,
+  children,
+  ...rest
+}: BaseProps & React.HTMLAttributes<HTMLElement>) {
   const Tag = (asChild ? Slot : defaultTag[variant ?? "body"]) as React.ElementType;
   return (
     <Tag className={cn(typographyVariants({ variant }), className)} {...rest}>

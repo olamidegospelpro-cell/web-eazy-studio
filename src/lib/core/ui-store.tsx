@@ -15,7 +15,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { PreferencesService, type AppPreferencesState, type PanelLayoutPreferences } from "./preferences";
+import {
+  PreferencesService,
+  type AppPreferencesState,
+  type PanelLayoutPreferences,
+} from "./preferences";
 import { bus } from "./event-bus";
 import { log } from "./logger";
 
@@ -39,7 +43,9 @@ export interface UiState {
 const UiContext = createContext<UiState | null>(null);
 
 export function UiProvider({ children }: { children: ReactNode }) {
-  const [preferences, setPreferencesState] = useState<AppPreferencesState>(PreferencesService.get());
+  const [preferences, setPreferencesState] = useState<AppPreferencesState>(
+    PreferencesService.get(),
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 

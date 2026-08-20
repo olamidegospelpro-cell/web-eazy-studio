@@ -45,7 +45,11 @@ export const NotificationService = {
   /** Binds a toast to a promise: loading → success/error automatically. */
   promise<T>(
     promise: Promise<T>,
-    messages: { loading: string; success: string | ((value: T) => string); error: string | ((error: unknown) => string) },
+    messages: {
+      loading: string;
+      success: string | ((value: T) => string);
+      error: string | ((error: unknown) => string);
+    },
   ): Promise<T> {
     sonner.promise(promise, messages);
     return promise;

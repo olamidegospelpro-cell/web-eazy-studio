@@ -124,7 +124,10 @@ function DesignSystemPage() {
 
       <div className="grid gap-8 px-8 py-8 max-w-5xl">
         {/* ---------------- Colors ---------------- */}
-        <Section title="Brand ramp" description="Purple palette 50 → 900. Use `brand` for primary actions.">
+        <Section
+          title="Brand ramp"
+          description="Purple palette 50 → 900. Use `brand` for primary actions."
+        >
           <div className="grid grid-cols-5 gap-3 sm:grid-cols-10">
             {[50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map((n) => (
               <Swatch key={n} token={`brand-${n}`} cls={`bg-brand-${n}`} />
@@ -192,21 +195,38 @@ function DesignSystemPage() {
             <Button size="sm">sm</Button>
             <Button size="md">md</Button>
             <Button size="lg">lg</Button>
-            <Button size="md" disabled>Disabled</Button>
-            <Button size="md"><Spinner size="sm" className="text-current" /> Loading…</Button>
+            <Button size="md" disabled>
+              Disabled
+            </Button>
+            <Button size="md">
+              <Spinner size="sm" className="text-current" /> Loading…
+            </Button>
           </div>
           <Separator className="my-4" />
           <div className="flex flex-wrap gap-2">
-            <IconButton label="Save" size="icon-sm"><Save /></IconButton>
-            <IconButton label="Copy"><Copy /></IconButton>
-            <IconButton label="Delete" variant="destructive"><Trash2 /></IconButton>
-            <ToolbarButton label="Play"><Play /></ToolbarButton>
-            <ToolbarButton label="Pause" active><Pause /></ToolbarButton>
+            <IconButton label="Save" size="icon-sm">
+              <Save />
+            </IconButton>
+            <IconButton label="Copy">
+              <Copy />
+            </IconButton>
+            <IconButton label="Delete" variant="destructive">
+              <Trash2 />
+            </IconButton>
+            <ToolbarButton label="Play">
+              <Play />
+            </ToolbarButton>
+            <ToolbarButton label="Pause" active>
+              <Pause />
+            </ToolbarButton>
           </div>
         </Section>
 
         {/* ---------------- Inputs ---------------- */}
-        <Section title="Inputs" description="All form controls share border, radius, and focus ring.">
+        <Section
+          title="Inputs"
+          description="All form controls share border, radius, and focus ring."
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField label="Project name" hint="Shown in the tab bar.">
               <Input placeholder="My website" />
@@ -237,11 +257,15 @@ function DesignSystemPage() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <Checkbox id="ds-cb" defaultChecked />
-                <label htmlFor="ds-cb" className="text-xs">Show grid on canvas</label>
+                <label htmlFor="ds-cb" className="text-xs">
+                  Show grid on canvas
+                </label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch id="ds-sw" defaultChecked />
-                <label htmlFor="ds-sw" className="text-xs">Auto-save</label>
+                <label htmlFor="ds-sw" className="text-xs">
+                  Auto-save
+                </label>
               </div>
               <div className="flex items-center gap-3">
                 <span className="w-16 text-xs text-muted-foreground">Opacity</span>
@@ -256,12 +280,25 @@ function DesignSystemPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <ProjectCard name="Portfolio v2" updatedAt="Edited 2h ago" />
             <TemplateCard name="Landing" description="Hero + features + CTA." />
-            <PluginCard name="SEO Tools" description="Metadata + sitemap." author="WebEazy" installed />
+            <PluginCard
+              name="SEO Tools"
+              description="Metadata + sitemap."
+              author="WebEazy"
+              installed
+            />
             <AssetCard name="hero.jpg" />
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <InfoCard icon={FolderOpen} title="Local storage" description="Projects live on disk." />
-            <InfoCard icon={Puzzle} title="Plugins ready" description="Extend WebEazy with widgets." />
+            <InfoCard
+              icon={FolderOpen}
+              title="Local storage"
+              description="Projects live on disk."
+            />
+            <InfoCard
+              icon={Puzzle}
+              title="Plugins ready"
+              description="Extend WebEazy with widgets."
+            />
           </div>
         </Section>
 
@@ -270,26 +307,59 @@ function DesignSystemPage() {
           <div className="flex flex-wrap gap-2">
             <StatusBadge>Neutral</StatusBadge>
             <StatusBadge tone="brand">Brand</StatusBadge>
-            <StatusBadge tone="success"><CheckCircle2 className="h-3 w-3" /> Saved</StatusBadge>
-            <StatusBadge tone="warning"><AlertTriangle className="h-3 w-3" /> Unsaved</StatusBadge>
-            <StatusBadge tone="danger"><AlertOctagon className="h-3 w-3" /> Error</StatusBadge>
-            <StatusBadge tone="info"><Info className="h-3 w-3" /> Update</StatusBadge>
+            <StatusBadge tone="success">
+              <CheckCircle2 className="h-3 w-3" /> Saved
+            </StatusBadge>
+            <StatusBadge tone="warning">
+              <AlertTriangle className="h-3 w-3" /> Unsaved
+            </StatusBadge>
+            <StatusBadge tone="danger">
+              <AlertOctagon className="h-3 w-3" /> Error
+            </StatusBadge>
+            <StatusBadge tone="info">
+              <Info className="h-3 w-3" /> Update
+            </StatusBadge>
           </div>
           <Separator className="my-4" />
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={() => notify.success("Project saved", "portfolio.wze")}>Toast · success</Button>
-            <Button size="sm" variant="outline" onClick={() => notify.warning("Unsaved changes")}>Toast · warning</Button>
-            <Button size="sm" variant="outline" onClick={() => notify.error("Export failed", "Disk is full.")}>Toast · error</Button>
-            <Button size="sm" variant="outline" onClick={() => notify.info("Update available")}>Toast · info</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => notify.success("Project saved", "portfolio.wze")}
+            >
+              Toast · success
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => notify.warning("Unsaved changes")}>
+              Toast · warning
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => notify.error("Export failed", "Disk is full.")}
+            >
+              Toast · error
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => notify.info("Update available")}>
+              Toast · info
+            </Button>
           </div>
         </Section>
 
         {/* ---------------- Loading / progress ---------------- */}
         <Section title="Loading states">
           <div className="flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-2"><Spinner size="sm" /><BodySm>Spinner sm</BodySm></div>
-            <div className="flex items-center gap-2"><Spinner /><BodySm>Spinner md</BodySm></div>
-            <div className="flex items-center gap-2"><Spinner size="lg" /><BodySm>Spinner lg</BodySm></div>
+            <div className="flex items-center gap-2">
+              <Spinner size="sm" />
+              <BodySm>Spinner sm</BodySm>
+            </div>
+            <div className="flex items-center gap-2">
+              <Spinner />
+              <BodySm>Spinner md</BodySm>
+            </div>
+            <div className="flex items-center gap-2">
+              <Spinner size="lg" />
+              <BodySm>Spinner lg</BodySm>
+            </div>
           </div>
           <Separator className="my-4" />
           <div className="grid gap-3 sm:grid-cols-2">
@@ -313,7 +383,11 @@ function DesignSystemPage() {
                 icon={FilePlus2}
                 title="No projects yet"
                 description="Create your first WebEazy project to get started."
-                action={<Button size="sm" variant="brand">New project</Button>}
+                action={
+                  <Button size="sm" variant="brand">
+                    New project
+                  </Button>
+                }
               />
             </div>
             <div className="rounded-md border border-border">
@@ -334,9 +408,15 @@ function DesignSystemPage() {
               <TabsTrigger value="b">Details</TabsTrigger>
               <TabsTrigger value="c">History</TabsTrigger>
             </TabsList>
-            <TabsContent value="a" className="pt-3"><BodySm>Overview panel content.</BodySm></TabsContent>
-            <TabsContent value="b" className="pt-3"><BodySm>Details panel content.</BodySm></TabsContent>
-            <TabsContent value="c" className="pt-3"><BodySm>History panel content.</BodySm></TabsContent>
+            <TabsContent value="a" className="pt-3">
+              <BodySm>Overview panel content.</BodySm>
+            </TabsContent>
+            <TabsContent value="b" className="pt-3">
+              <BodySm>Details panel content.</BodySm>
+            </TabsContent>
+            <TabsContent value="c" className="pt-3">
+              <BodySm>History panel content.</BodySm>
+            </TabsContent>
           </Tabs>
           <Separator className="my-4" />
           <Button variant="destructive" size="sm" onClick={() => setConfirmOpen(true)}>
@@ -349,7 +429,9 @@ function DesignSystemPage() {
             description="This action can't be undone. Your files will be moved to trash."
             confirmLabel="Delete"
             tone="danger"
-            onConfirm={() => { notify.success("Project deleted"); }}
+            onConfirm={() => {
+              notify.success("Project deleted");
+            }}
           />
         </Section>
 
@@ -357,7 +439,10 @@ function DesignSystemPage() {
         <Section title="Elevation">
           <div className="grid gap-4 sm:grid-cols-4">
             {(["xs", "sm", "md", "lg"] as const).map((s) => (
-              <div key={s} className={`flex h-20 items-center justify-center rounded-md border border-border bg-card shadow-${s}`}>
+              <div
+                key={s}
+                className={`flex h-20 items-center justify-center rounded-md border border-border bg-card shadow-${s}`}
+              >
                 <Code className="!bg-transparent !p-0">shadow-{s}</Code>
               </div>
             ))}

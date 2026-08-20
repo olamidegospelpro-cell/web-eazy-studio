@@ -21,12 +21,7 @@ export {
   type HistoryState,
 } from "./history";
 export { NotificationService, type ProgressHandle } from "./notifications";
-export {
-  ShortcutService,
-  formatAccelerator,
-  isMac,
-  type ShortcutDefinition,
-} from "./shortcuts";
+export { ShortcutService, formatAccelerator, isMac, type ShortcutDefinition } from "./shortcuts";
 export { CommandRegistry, scoreMatch, type Command, type CommandCategory } from "./commands";
 export { DialogProvider, useDialogs, type DialogApi, type DialogKind } from "./dialogs";
 export { UiProvider, useUi, type UiState } from "./ui-store";

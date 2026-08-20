@@ -19,7 +19,10 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings · WebEazy" },
-      { name: "description", content: "Configure appearance, panels, shortcuts and logging in WebEazy." },
+      {
+        name: "description",
+        content: "Configure appearance, panels, shortcuts and logging in WebEazy.",
+      },
       { property: "og:title", content: "Settings · WebEazy" },
       {
         property: "og:description",
@@ -81,10 +84,26 @@ function SettingsPage() {
           </p>
           <div className="mt-4 grid gap-3">
             {[
-              { key: "leftSidebarCollapsed" as const, label: "Collapse left sidebar", value: ui.layout.leftSidebarCollapsed },
-              { key: "rightPanelVisible" as const, label: "Show properties panel", value: ui.layout.rightPanelVisible },
-              { key: "bottomPanelOpen" as const, label: "Show bottom panel", value: ui.layout.bottomPanelOpen },
-              { key: "statusBarVisible" as const, label: "Show status bar", value: ui.layout.statusBarVisible },
+              {
+                key: "leftSidebarCollapsed" as const,
+                label: "Collapse left sidebar",
+                value: ui.layout.leftSidebarCollapsed,
+              },
+              {
+                key: "rightPanelVisible" as const,
+                label: "Show properties panel",
+                value: ui.layout.rightPanelVisible,
+              },
+              {
+                key: "bottomPanelOpen" as const,
+                label: "Show bottom panel",
+                value: ui.layout.bottomPanelOpen,
+              },
+              {
+                key: "statusBarVisible" as const,
+                label: "Show status bar",
+                value: ui.layout.statusBarVisible,
+              },
             ].map((row) => (
               <label key={row.key} className="flex items-center justify-between text-sm">
                 <span>{row.label}</span>
@@ -115,7 +134,10 @@ function SettingsPage() {
           </p>
           <ul className="mt-4 divide-y divide-border text-sm">
             {shortcuts.map((shortcut) => (
-              <li key={`${shortcut.id}-${shortcut.accelerator}`} className="flex items-center justify-between py-1.5">
+              <li
+                key={`${shortcut.id}-${shortcut.accelerator}`}
+                className="flex items-center justify-between py-1.5"
+              >
                 <span className="text-muted-foreground">{shortcut.description}</span>
                 <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[11px]">
                   {formatAccelerator(shortcut.accelerator)}

@@ -2,14 +2,25 @@
 import { FormField, Input, Textarea } from "@/components/ds";
 import { Surface } from "@/components/ds/cards";
 import { TemplateService, WEBSITE_TYPES, type WebsiteType } from "@/lib/project";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { StepProps } from "./types";
 
 export function StepDetails({ draft, patch, errors }: StepProps) {
   return (
     <div className="grid gap-5">
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Project name" required error={errors.name} hint="Used for the folder name.">
+        <FormField
+          label="Project name"
+          required
+          error={errors.name}
+          hint="Used for the folder name."
+        >
           <Input
             value={draft.name}
             onChange={(e) => patch({ name: e.target.value })}
