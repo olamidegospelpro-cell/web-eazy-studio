@@ -1,7 +1,5 @@
-/**
- * Factory helpers for fresh project documents.
- * Kept separate from ProjectService so templates and tests can reuse them.
- */
+/** Factory helpers for fresh project documents. */
+import { createStarterDocument } from "@/lib/editor";
 import {
   APP_NAME,
   APP_VERSION,
@@ -14,26 +12,16 @@ import {
 export const DEFAULT_AUTOSAVE_INTERVAL_MS = 30_000;
 
 export function newId(prefix = "wz"): string {
-  const rand =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID().replace(/-/g, "").slice(0, 12)
-      : Math.random().toString(36).slice(2, 14);
+  const rand = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID().replace(/-/g, "").slice(0, 12)
+    : Math.random().toString(36).slice(2, 14);
   return `${prefix}_${rand}`;
 }
 
-export function nowIso(): string {
-  return new Date().toISOString();
-}
+export function nowIso(): string { return new Date().toISOString(); }
 
 export function slugify(input: string): string {
-  return (
-    input
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "page"
-  );
+  return input.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "page";
 }
 
 export const DEFAULT_FONT_STACK = "system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
@@ -43,22 +31,10 @@ export function createDefaultTheme(overrides?: Partial<ProjectTheme>): ProjectTh
     schemaVersion: PROJECT_SCHEMA_VERSION,
     name: "Default",
     colors: {
-      primary: "#6C4CF1",
-      secondary: "#8B5CF6",
-      accent: "#C026D3",
-      background: "#FFFFFF",
-      surface: "#F8F9FC",
-      text: "#14161F",
-      success: "#16A34A",
-      warning: "#D97706",
-      danger: "#DC2626",
+      primary: "#6C4CF1", secondary: "#8B5CF6", accent: "#C026D3", background: "#FFFFFF", surface: "#F8F9FC",
+      text: "#14161F", success: "#16A34A", warning: "#D97706", danger: "#DC2626",
     },
-    fonts: {
-      heading: "Inter",
-      body: "Inter",
-      button: "Inter",
-      fallback: DEFAULT_FONT_STACK,
-    },
+    fonts: { heading: "Inter", body: "Inter", button: "Inter", fallback: DEFAULT_FONT_STACK },
     spacing: { base: 4, scale: [0, 4, 8, 12, 16, 24, 32, 48, 64, 96] },
     radius: { sm: 4, md: 8, lg: 16, pill: 999 },
     shadow: {
@@ -73,16 +49,17 @@ export function createDefaultTheme(overrides?: Partial<ProjectTheme>): ProjectTh
 }
 
 export function createPage(name: string, opts?: { isHome?: boolean }): PageDocument {
-  const slug = opts?.isHome ? "index" : slugify(name);
+  const pageId = newId("page");
   const ts = nowIso();
+  const document = createStarterDocument(pageId);
   return {
     schemaVersion: PROJECT_SCHEMA_VERSION,
-    id: newId("page"),
+    id: pageId,
     name,
-    slug,
+    slug: opts?.isHome ? "index" : slugify(name),
     title: name,
     description: "",
-    nodes: [],
+    document,
     createdAt: ts,
     lastModified: ts,
   };
