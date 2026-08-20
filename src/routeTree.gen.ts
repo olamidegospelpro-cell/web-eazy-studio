@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluginsRouteImport } from './routes/plugins'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -35,6 +36,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/design-system': typeof DesignSystemRoute
+  '/editor': typeof EditorRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/design-system': typeof DesignSystemRoute
+  '/editor': typeof EditorRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
@@ -60,21 +68,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/design-system': typeof DesignSystemRoute
+  '/editor': typeof EditorRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
+  fullPaths: '/' | '/about' | '/design-system' | '/editor' | '/plugins' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
-  id: '__root__' | '/' | '/about' | '/design-system' | '/plugins' | '/settings'
   fileRoutesById: FileRoutesById
+  to: '/' | '/about' | '/design-system' | '/editor' | '/plugins' | '/settings'
+  id: '__root__' | '/' | '/about' | '/design-system' | '/editor' | '/plugins' | '/settings'
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  EditorRoute: typeof EditorRoute
   PluginsRoute: typeof PluginsRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -109,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -123,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   DesignSystemRoute: DesignSystemRoute,
+  EditorRoute: EditorRoute,
   PluginsRoute: PluginsRoute,
   SettingsRoute: SettingsRoute,
 }
