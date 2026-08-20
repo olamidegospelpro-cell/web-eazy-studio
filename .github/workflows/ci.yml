@@ -1,31 +1,36 @@
-name: WebEazy CI
+name: Verify WebEazy
 
 on:
   push:
-    branches: [main, develop, 'feature/**']
+    branches:
+      - main
+      - develop
+      - feature/webeazy-v1-foundation
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 jobs:
   verify:
+    name: Verify project
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 24
+          cache: npm
 
-      # The project was moved from Vite 8/Rolldown to Vite 7 for legacy-CPU
-      # development compatibility. Let Bun reconcile the existing lockfile
-      # during CI until the dependency graph is intentionally re-locked.
       - name: Install dependencies
-        run: bun install
+        run: npm ci
 
-      - name: Lint
-        run: bun run lint
+      - name: Run lint
+        run: npm run lint
 
-      - name: Production build
-        run: bun run build
+      - name: Build application
+        run: npm run build
