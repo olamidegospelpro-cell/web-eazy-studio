@@ -1,4 +1,4 @@
-import { createStarterDocument } from "@/lib/editor";
+import { createStarterDocument, createNodeId } from "@/lib/editor";
 import type { EditorDocument, EditorPage, PageId } from "@/lib/editor";
 
 export class PageService {
@@ -9,29 +9,19 @@ export class PageService {
     return [...this.pages.values()].sort((a, b) => Number(Boolean(b.isHome)) - Number(Boolean(a.isHome)) || a.name.localeCompare(b.name));
   }
 
-  get(id: PageId): EditorPage | undefined {
-    return this.pages.get(id);
-  }
-
-  getDocument(id: PageId): EditorDocument | undefined {
-    return this.documents.get(id);
-  }
+  get(id: PageId): EditorPage | undefined { return this.pages.get(id); }
+  getDocument(id: PageId): EditorDocument | undefined { return this.documents.get(id); }
 
   create(name = "New Page", slug = "new-page"): EditorPage {
-    const pageId = crypto.randomUUID();
+    const pageId = createNodeId("page");
     const document = createStarterDocument(pageId);
     const now = new Date().toISOString();
     const page: EditorPage = {
-      id: pageId,
-      name,
-      slug,
-      title: name,
-      description: "",
+      id: pageId, name, slug, title: name, description: "",
       rootNodeId: document.rootNodeId,
       nodeIds: Object.keys(document.nodes),
       isHome: this.pages.size === 0,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: now, updatedAt: now,
     };
     this.pages.set(page.id, page);
     this.documents.set(page.id, document);
@@ -46,7 +36,9 @@ export class PageService {
     const cloned = structuredClone(sourceDocument);
     cloned.pageId = page.id;
     this.documents.set(page.id, cloned);
-    return { ...page, nodeIds: Object.keys(cloned.nodes), rootNodeId: cloned.rootNodeId };
+    const result = { ...page, nodeIds: Object.keys(cloned.nodes), rootNodeId: cloned.rootNodeId };
+    this.pages.set(page.id, result);
+    return result;
   }
 
   update(id: PageId, patch: Partial<Pick<EditorPage, "name" | "slug" | "title" | "description">>): void {
