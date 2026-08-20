@@ -15,6 +15,7 @@ export type EditorNodeType =
   | "video"
   | "button"
   | "icon"
+  | "shape"
   | "spacer"
   | "divider"
   | "form"
