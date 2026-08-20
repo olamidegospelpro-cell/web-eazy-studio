@@ -52,6 +52,24 @@ class EditorStore {
     this.emit();
   }
 
+  toggleLock(nodeId: NodeId) {
+    const node = this.document.nodes[nodeId];
+    if (!node || node.type === "root") return;
+    this.commit(
+      { ...this.document, nodes: { ...this.document.nodes, [nodeId]: { ...node, locked: !node.locked } } },
+      node.locked ? `Unlock ${node.name}` : `Lock ${node.name}`,
+    );
+  }
+
+  updateNode(nodeId: NodeId, patch: Partial<Pick<import("./document-types").EditorNode, "props" | "styles" | "name">>) {
+    const node = this.document.nodes[nodeId];
+    if (!node) return;
+    this.commit(
+      { ...this.document, nodes: { ...this.document.nodes, [nodeId]: { ...node, ...patch } } },
+      `Update ${node.name}`,
+    );
+  }
+
   undo() {
     const document = this.historyManager.undo();
     if (!document) return;
