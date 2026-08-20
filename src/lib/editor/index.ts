@@ -4,3 +4,4 @@ export * from "./document-factory";
 export * from "./history-manager";
 export * from "./node-factory";
 export * from "./editor-store";
+export * from "./project-export";
