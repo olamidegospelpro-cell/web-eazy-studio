@@ -12,6 +12,7 @@ export interface CreateNodeOptions {
   parentId?: NodeId | null;
   props?: Record<string, unknown>;
   styles?: Record<string, unknown>;
+  locked?: boolean;
 }
 
 export function createEditorNode(
@@ -26,6 +27,7 @@ export function createEditorNode(
     childIds: [],
     props: options.props ?? defaultProps(type),
     styles: options.styles ?? {},
+    locked: options.locked ?? false,
   };
 }
 
@@ -42,6 +44,7 @@ export function defaultNodeName(type: EditorNodeType): string {
     video: "Video",
     button: "Button",
     icon: "Icon",
+    shape: "Rectangle",
     spacer: "Spacer",
     divider: "Divider",
     form: "Form",
@@ -62,6 +65,8 @@ function defaultProps(type: EditorNodeType): Record<string, unknown> {
       return { src: "", alt: "" };
     case "video":
       return { src: "" };
+    case "shape":
+      return { shape: "rectangle" };
     default:
       return {};
   }
