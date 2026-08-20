@@ -105,6 +105,11 @@ export const manifestSchema = z.object({
   extensions: z.record(z.unknown()).default({}),
 });
 
+/**
+ * Page files store the editor document under `document`.
+ * Keep the document payload opaque here; the editor owns its detailed
+ * document schema, while this project layer validates the page envelope.
+ */
 export const pageSchema = z.object({
   schemaVersion: z.number().int().positive(),
   id: z.string().min(1),
@@ -112,7 +117,7 @@ export const pageSchema = z.object({
   slug: z.string().min(1),
   title: z.string().default(""),
   description: z.string().default(""),
-  nodes: z.array(z.unknown()).default([]),
+  document: z.unknown(),
   createdAt: z.string(),
   lastModified: z.string(),
 });
@@ -127,7 +132,7 @@ export const projectNameSchema = z
   .trim()
   .min(2, "Project name must be at least 2 characters")
   .max(60, "Keep the project name under 60 characters")
-  .regex(/^[^<>:"/\\|?*]+$/, 'Avoid the characters < > : " / \\ | ? *');
+  .regex(/^[^<>:\"/\\|?*]+$/, 'Avoid the characters < > : " / \\ | ? *');
 
 export const semverSchema = z
   .string()
