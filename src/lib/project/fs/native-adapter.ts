@@ -3,9 +3,15 @@ import { idb, STORE_HANDLES } from "./idb";
 import { FsError, splitPath, type DirEntry, type FsAdapter } from "./types";
 
 type PermissionMode = { mode: "read" | "readwrite" };
+interface DirectoryEntry {
+  name: string;
+  kind: "file" | "directory";
+}
+
 interface DirHandle extends FileSystemDirectoryHandle {
   queryPermission?: (d: PermissionMode) => Promise<PermissionState>;
   requestPermission?: (d: PermissionMode) => Promise<PermissionState>;
+  entries?: () => AsyncIterableIterator<[string, FileSystemHandle]>;
 }
 type PickerWindow = Window & {
   showDirectoryPicker?: (opts?: {
@@ -134,9 +140,9 @@ export const nativeAdapter: FsAdapter = {
   async listDir(location, relativePath) {
     const dir = await resolveDir(location, splitPath(relativePath), false);
     const entries: DirEntry[] = [];
-    for await (const entry of dir.values()) {
+    for await (const [name, entry] of (dir as DirHandle).entries!()) {
       entries.push({
-        name: entry.name,
+        name,
         kind: entry.kind === "directory" ? "directory" : "file",
       });
     }
@@ -153,8 +159,8 @@ export const nativeAdapter: FsAdapter = {
   async removeRoot(location) {
     const dir = await resolveDir(location, [], false);
     const names: string[] = [];
-    for await (const entry of dir.values()) {
-      names.push(entry.name);
+    for await (const [name] of (dir as DirHandle).entries!()) {
+      names.push(name);
     }
     for (const name of names) await dir.removeEntry(name, { recursive: true });
   },
