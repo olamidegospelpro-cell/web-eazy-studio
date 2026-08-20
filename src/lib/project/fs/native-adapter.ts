@@ -140,6 +140,8 @@ export const nativeAdapter: FsAdapter = {
         kind: entry.kind === "directory" ? "directory" : "file",
       });
     }
+
+    return entries;
   },
   async remove(location, relativePath) {
     const segments = splitPath(relativePath);
