@@ -132,7 +132,7 @@ export const projectNameSchema = z
   .trim()
   .min(2, "Project name must be at least 2 characters")
   .max(60, "Keep the project name under 60 characters")
-  .regex(/^[^<>:\"/\\|?*]+$/, 'Avoid the characters < > : " / \\ | ? *');
+  .regex(/^[^<>:"/\\|?*]+$/, 'Avoid the characters < > : " / \\ | ? *');
 
 export const semverSchema = z
   .string()
