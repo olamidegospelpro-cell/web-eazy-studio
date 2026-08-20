@@ -1,11 +1,3 @@
-/**
- * TokenService — flattening, lookup and reference resolution.
- *
- * Tokens may point at other color tokens using `{colors.primary}`. Resolution
- * happens once per theme+mode here, so the style generator and any inspector
- * always see literal values. References are single-level by design (a chain
- * longer than `MAX_DEPTH` is reported by ThemeValidator as a broken reference).
- */
 import { ColorService } from "./color-service";
 import type { ColorTokens, ThemeDocument, ThemeMode, TokenMap } from "./types";
 
@@ -20,20 +12,18 @@ export const TokenService = {
     return match ? match[1]! : null;
   },
 
-  /** Resolves `{colors.x}` chains against a mode's palette. */
   resolveColor(value: string, palette: ColorTokens): string {
     let current = value;
     for (let depth = 0; depth < MAX_DEPTH; depth += 1) {
       const target = TokenService.referenceTarget(current);
       if (!target) return current;
-      const next = (palette as Record<string, string | undefined>)[target];
+      const next = (palette as unknown as Record<string, string | undefined>)[target];
       if (next === undefined) return current;
       current = next;
     }
     return current;
   },
 
-  /** Palette with every reference expanded to a literal color. */
   resolvePalette(theme: ThemeDocument, mode: ThemeMode): ColorTokens {
     const palette = theme.colors[mode];
     const out = {} as ColorTokens;
@@ -43,7 +33,6 @@ export const TokenService = {
     return out;
   },
 
-  /** Flat `name -> value` map, handy for token browsers and debugging. */
   flatten(theme: ThemeDocument, mode: ThemeMode): TokenMap {
     const palette = TokenService.resolvePalette(theme, mode);
     const map: TokenMap = {};
@@ -62,7 +51,6 @@ export const TokenService = {
     return TokenService.flatten(theme, mode)[path];
   },
 
-  /** Derived helpers every component theme reuses (hover/active/subtle states). */
   derive(palette: ColorTokens, mode: ThemeMode) {
     const shift = (value: string, amount: number) =>
       mode === "dark" ? ColorService.lighten(value, amount) : ColorService.darken(value, amount);
