@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent } from "react";
 import {
   AlignCenter, AlignLeft, AlignRight, ArrowLeft, Bot, Code2, Copy, Crop, Eye, Frame, GripVertical, Image, Link2, Lock, LockOpen,
   Maximize2, Minimize2, Monitor, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
@@ -57,7 +57,7 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
     setSelectedId(id);
     setContextMenu(null);
   };
-  const openContextMenu = (event: PointerEvent<HTMLDivElement>, id: string) => {
+  const openContextMenu = (event: MouseEvent<HTMLDivElement>, id: string) => {
     event.preventDefault();
     event.stopPropagation();
     setSelectedId(id);
@@ -171,14 +171,14 @@ function ToolButton({ label, icon: Icon, onClick, active }: { label: string; ico
   return <button title={label} aria-label={label} onClick={onClick} className={`flex size-8 shrink-0 items-center justify-center rounded-md transition ${active ? "bg-violet-500/20 text-violet-200" : "text-white/45 hover:bg-white/5 hover:text-white"}`}><Icon className="size-3.5" /></button>;
 }
 
-function DesignCanvas({ blocks, selectedId, onSelect, onUpdate, onAdd, onContextMenu, onGenerate, generating }: { blocks: DemoBlock[]; selectedId: string | null; onSelect: (id: string) => void; onUpdate: (id: string, patch: Partial<DemoBlock>) => void; onAdd: (block: DemoBlock) => void; onContextMenu: (event: PointerEvent<HTMLDivElement>, id: string) => void; onGenerate: () => void; generating: boolean }) {
+function DesignCanvas({ blocks, selectedId, onSelect, onUpdate, onAdd, onContextMenu, onGenerate, generating }: { blocks: DemoBlock[]; selectedId: string | null; onSelect: (id: string) => void; onUpdate: (id: string, patch: Partial<DemoBlock>) => void; onAdd: (block: DemoBlock) => void; onContextMenu: (event: MouseEvent<HTMLDivElement>, id: string) => void; onGenerate: () => void; generating: boolean }) {
   const addEmptyShape = () => onAdd({ id: `shape-${Math.random().toString(36).slice(2, 9)}`, type: "shape", name: "Shape", text: "", x: 180, y: 180, width: 300, height: 160, background: "#e5e7eb", color: "#111827", radius: 16, locked: false });
   return <div className="relative min-h-full w-full bg-white" onContextMenu={(e) => e.preventDefault()}>
     {blocks.length === 0 ? <div className="flex min-h-[700px] items-center justify-center p-8 text-center text-slate-900"><div className="max-w-md"><div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-violet-100 text-violet-600"><Sparkles className="size-6" /></div><h2 className="text-xl font-bold">Start designing</h2><p className="mt-2 text-sm leading-relaxed text-slate-500">Create freely with the toolbar, or turn on AI and generate a first draft.</p><div className="mt-4 flex flex-wrap justify-center gap-2"><Button variant="outline" onClick={addEmptyShape}><Square className="mr-2 size-4" />Add shape</Button><Button className="bg-violet-600 text-white hover:bg-violet-500" onClick={onGenerate} disabled={generating}>{generating ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <WandSparkles className="mr-2 size-4" />}Generate with AI</Button></div></div></div> : blocks.map((b, index) => <CanvasBlock key={b.id} block={b} layerIndex={index} selected={selectedId === b.id} onSelect={() => onSelect(b.id)} onUpdate={(p) => onUpdate(b.id, p)} onContextMenu={onContextMenu} />)}
   </div>;
 }
 
-function CanvasBlock({ block, layerIndex, selected, onSelect, onUpdate, onContextMenu }: { block: DemoBlock; layerIndex: number; selected: boolean; onSelect: () => void; onUpdate: (patch: Partial<DemoBlock>) => void; onContextMenu: (event: PointerEvent<HTMLDivElement>, id: string) => void }) {
+function CanvasBlock({ block, layerIndex, selected, onSelect, onUpdate, onContextMenu }: { block: DemoBlock; layerIndex: number; selected: boolean; onSelect: () => void; onUpdate: (patch: Partial<DemoBlock>) => void; onContextMenu: (event: MouseEvent<HTMLDivElement>, id: string) => void }) {
   const drag = useRef<{ cx: number; cy: number; x: number; y: number } | null>(null);
   const resize = useRef<{ cx: number; cy: number; w: number; h: number } | null>(null);
   const style: CSSProperties = { position: "absolute", left: block.x, top: block.y, width: block.width, height: block.height, background: block.background, color: block.color, borderRadius: block.radius, zIndex: layerIndex + 10 };
@@ -200,7 +200,7 @@ function CanvasContextMenu({ menu, block, onAction, onDuplicate, onDelete, onClo
   ];
   return <div onPointerDown={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, window.innerWidth - 210), top: Math.min(menu.y, window.innerHeight - 260), zIndex: 200 }} className="w-52 overflow-hidden rounded-xl border border-white/10 bg-[#10131a] p-1.5 text-white shadow-2xl backdrop-blur-xl">
     <div className="border-b border-white/10 px-2.5 py-2"><div className="text-xs font-semibold">{block.name}</div><div className="text-[9px] uppercase tracking-wider text-white/35">WebEazy canvas</div></div>
-    {items.map((item) => <button key={item.label} onClick={item.action} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/75 hover:bg-violet-500/15 hover:text-white"><span>{item.label}</span></button>)}
+    {items.map((item) => <button key={item.label} onClick={item.action} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/75 hover:bg-violet-500/15 hover:text-white">{item.label}</button>)}
     <div className="my-1 h-px bg-white/10" />
     <button onClick={onDuplicate} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/75 hover:bg-white/5 hover:text-white">Duplicate</button>
     <button onClick={onDelete} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-red-300 hover:bg-red-500/10">Delete</button>
