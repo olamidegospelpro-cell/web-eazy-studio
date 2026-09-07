@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import {
   AlignCenter, AlignLeft, AlignRight, ArrowLeft, Bot, Code2, Copy, Crop, Eye, Frame, GripVertical, Image, Link2, Lock, LockOpen,
-  Maximize2, Minimize2, Monitor, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Play,
+  Maximize2, Minimize2, Monitor, MousePointer2, Move, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
   Plus, Redo2, RefreshCw, Scissors, Send, Smartphone, Sparkles, Square, Tablet, Trash2, Type, Undo2, WandSparkles, ZoomIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { generateWithAiPrototype, refineBlock, type DemoBlock } from "@/lib/hack
 
 type Viewport = "desktop" | "tablet" | "mobile";
 type Tool = "select" | "move" | "frame" | "crop" | "text" | "image" | "link" | "align-left" | "align-center" | "align-right";
+type ContextMenuState = { x: number; y: number; blockId: string } | null;
 const widths: Record<Viewport, number> = { desktop: 1120, tablet: 760, mobile: 390 };
 const samplePrompt = "Create a modern website for a Nigerian solar and electrical company called Vicky Tech Innovations. Use green and charcoal. Include a strong hero, services, trust-building copy and a clear contact CTA.";
 
@@ -30,16 +31,38 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
   const [aiOpen, setAiOpen] = useState(true);
   const [immersive, setImmersive] = useState(false);
   const [tool, setTool] = useState<Tool>("select");
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
 
   const selected = useMemo(() => blocks.find((b) => b.id === selectedId) ?? null, [blocks, selectedId]);
   const updateBlock = (id: string, patch: Partial<DemoBlock>) => setBlocks((current) => current.map((b) => b.id === id ? { ...b, ...patch } : b));
-  const addBlock = (block: DemoBlock) => { setBlocks((current) => [...current, block]); setSelectedId(block.id); };
+  const addBlock = (block: DemoBlock) => { setBlocks((current) => [...current, block]); setSelectedId(block.id); setContextMenu(null); };
   const newId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
   const addText = () => addBlock({ id: newId("text"), type: "text", name: "Text", text: "Double-click to edit this text", x: 120, y: 160, width: 420, height: 70, background: "transparent", color: "#111827", radius: 0, locked: false });
   const addShape = () => addBlock({ id: newId("shape"), type: "shape", name: "Shape", text: "", x: 140, y: 260, width: 300, height: 160, background: "#e5e7eb", color: "#111827", radius: 16, locked: false });
   const duplicateSelected = () => { if (!selected) return; const copy = { ...selected, id: newId("copy"), name: `${selected.name} copy`, x: selected.x + 24, y: selected.y + 24 }; addBlock(copy); };
-  const deleteSelected = () => { if (!selected) return; setBlocks((current) => current.filter((b) => b.id !== selected.id)); setSelectedId(null); };
+  const deleteSelected = () => { if (!selected) return; setBlocks((current) => current.filter((b) => b.id !== selected.id)); setSelectedId(null); setContextMenu(null); };
+  const moveLayer = (id: string, direction: "front" | "back" | "forward" | "backward") => {
+    setBlocks((current) => {
+      const index = current.findIndex((b) => b.id === id);
+      if (index < 0) return current;
+      const next = [...current];
+      const [item] = next.splice(index, 1);
+      if (direction === "front") next.push(item);
+      else if (direction === "back") next.unshift(item);
+      else if (direction === "forward") next.splice(Math.min(index + 1, next.length), 0, item);
+      else next.splice(Math.max(index - 1, 0), 0, item);
+      return next;
+    });
+    setSelectedId(id);
+    setContextMenu(null);
+  };
+  const openContextMenu = (event: PointerEvent<HTMLDivElement>, id: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedId(id);
+    setContextMenu({ x: event.clientX, y: event.clientY, blockId: id });
+  };
 
   const generate = async () => {
     if (!prompt.trim()) return;
@@ -67,7 +90,7 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
     if (next === "frame") addShape();
   };
 
-  return <div className="fixed inset-0 z-[100] flex flex-col bg-[#090b10] text-white">
+  return <div className="fixed inset-0 z-[100] flex flex-col bg-[#090b10] text-white" onPointerDown={() => contextMenu && setContextMenu(null)}>
     {!immersive && <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 bg-[#10131a] px-2 sm:px-3">
       <div className="flex min-w-0 items-center gap-1.5">
         <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10 hover:text-white"><ArrowLeft className="size-4" /></Button>
@@ -78,10 +101,12 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
         <button onClick={() => setAiOpen((v) => !v)} className={`hidden items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium lg:flex ${aiOpen ? "border-violet-400/40 bg-violet-500/15 text-violet-200" : "border-white/10 bg-white/5 text-white/55"}`} title="Toggle AI assistant"><Bot className="size-3.5" />AI {aiOpen ? "On" : "Off"}</button>
         <div className="hidden items-center gap-1 rounded-lg border border-white/10 bg-black/20 p-1 md:flex">{(["desktop", "tablet", "mobile"] as Viewport[]).map((v) => <button key={v} title={v} onClick={() => setViewport(v)} className={`rounded-md p-1.5 ${viewport === v ? "bg-white/10 text-white" : "text-white/35 hover:text-white"}`}>{v === "desktop" ? <Monitor className="size-3.5" /> : v === "tablet" ? <Tablet className="size-3.5" /> : <Smartphone className="size-3.5" />}</button>)}</div>
         <Button variant="outline" size="sm" onClick={() => setPreview((v) => !v)} className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"><Eye className="mr-1.5 size-3.5" />{preview ? "Design" : "Preview"}</Button>
-        <Button variant="outline" size="sm" onClick={() => setImmersive((v) => !v)} className="hidden border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white lg:flex">{immersive ? <Minimize2 className="mr-1.5 size-3.5" /> : <Maximize2 className="mr-1.5 size-3.5" />}{immersive ? "Exit focus" : "Focus"}</Button>
+        <Button variant="outline" size="sm" onClick={() => setImmersive((v) => !v)} className="hidden border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">{immersive ? <Minimize2 className="mr-1.5 size-3.5" /> : <Maximize2 className="mr-1.5 size-3.5" />}{immersive ? "Exit focus" : "Focus"}</Button>
         <Button size="sm" onClick={exportHtml} disabled={!blocks.length} className="bg-white text-black hover:bg-white/90"><Code2 className="mr-1.5 size-3.5" />Export</Button>
       </div>
     </header>}
+
+    {immersive && <button onClick={() => setImmersive(false)} title="Exit focus" className="absolute right-3 top-3 z-[120] flex items-center gap-1.5 rounded-lg border border-white/15 bg-[#10131a]/95 px-3 py-2 text-xs font-medium text-white shadow-xl backdrop-blur hover:bg-white/10"><Minimize2 className="size-3.5" />Exit focus</button>}
 
     <div className="relative flex min-h-0 flex-1">
       {!preview && aiOpen && leftOpen && <aside className="hidden w-[255px] shrink-0 flex-col border-r border-white/10 bg-[#10131a] lg:flex">
@@ -102,7 +127,7 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
         {preview ? <PreviewWebsite blocks={blocks} businessName={businessName} /> : <div className="flex min-h-full w-full flex-col">
           <StudioToolbar tool={tool} onTool={toolClick} onDuplicate={duplicateSelected} onDelete={deleteSelected} />
           <div className="min-h-0 flex-1 overflow-auto p-2 sm:p-3 lg:p-4"><div className="relative mx-auto min-h-[700px] overflow-auto bg-white shadow-[0_20px_80px_rgba(0,0,0,.45)]" style={{ width: "100%", maxWidth: widths[viewport], height: "calc(100vh - 118px)" }}>
-            <DesignCanvas blocks={blocks} selectedId={selectedId} onSelect={setSelectedId} onUpdate={updateBlock} onGenerate={() => void generate()} generating={generating} />
+            <DesignCanvas blocks={blocks} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); setContextMenu(null); }} onUpdate={updateBlock} onAdd={addBlock} onContextMenu={openContextMenu} onGenerate={() => void generate()} generating={generating} />
           </div></div>
         </div>}
       </main>
@@ -116,11 +141,13 @@ export function HackathonStudio({ onClose, initialBusinessName = "Untitled proje
           <Field label="Background" value={selected.background} onChange={(v) => updateBlock(selected.id, { background: v })} /><Field label="Text colour" value={selected.color} onChange={(v) => updateBlock(selected.id, { color: v })} /><Field label="Radius" value={String(selected.radius)} onChange={(v) => updateBlock(selected.id, { radius: Math.max(0, num(v, selected.radius)) })} />
           <Button variant="outline" className="mb-4 w-full border-white/10 bg-transparent text-white hover:bg-white/5 hover:text-white" onClick={() => updateBlock(selected.id, { locked: !selected.locked })}>{selected.locked ? <LockOpen className="mr-2 size-4" /> : <Lock className="mr-2 size-4" />}{selected.locked ? "Unlock" : "Lock"}</Button>
           <div className="rounded-xl border border-violet-400/20 bg-violet-500/5 p-2.5"><div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-100"><Sparkles className="size-4" />AI refine</div><Textarea value={refine} onChange={(e) => setRefine(e.target.value)} className="min-h-16 resize-none border-white/10 bg-black/20 text-xs text-white" /><Button size="sm" className="mt-2 w-full bg-violet-500 text-white hover:bg-violet-400" onClick={() => void refineSelected()} disabled={refining || !aiOpen}>{refining ? <RefreshCw className="mr-2 size-3.5 animate-spin" /> : <Send className="mr-2 size-3.5" />}{aiOpen ? (refining ? "Applying..." : "Apply AI") : "AI is off"}</Button></div>
-        </div> : <div className="p-4 text-xs leading-relaxed text-white/35">Select an element to edit its content, position, size and appearance. Use the toolbar to add elements.</div>}
+        </div> : <div className="p-4 text-xs leading-relaxed text-white/35">Select an element to edit its content, position, size and appearance. Right-click any element for layer actions.</div>}
       </aside>}
       {!preview && !rightOpen && <button title="Open properties" onClick={() => setRightOpen(true)} className="absolute right-2 top-12 z-50 rounded-lg border border-white/10 bg-[#10131a]/95 p-2 text-white/60 shadow-lg backdrop-blur hover:text-white"><PanelRightOpen className="size-4" /></button>}
     </div>
     {!immersive && <footer className="flex h-7 shrink-0 items-center justify-between border-t border-white/10 bg-[#10131a] px-3 text-[10px] text-white/35"><span>{blocks.length ? `${blocks.length} elements · ${businessName}` : "Blank canvas"}</span><span className="hidden sm:inline">Visual studio · human editable · AI optional</span></footer>}
+
+    {contextMenu && !preview && <CanvasContextMenu menu={contextMenu} block={blocks.find((b) => b.id === contextMenu.blockId) ?? null} onAction={moveLayer} onDuplicate={() => { const block = blocks.find((b) => b.id === contextMenu.blockId); if (!block) return; const copy = { ...block, id: newId("copy"), name: `${block.name} copy`, x: block.x + 24, y: block.y + 24 }; addBlock(copy); }} onDelete={() => { setBlocks((current) => current.filter((b) => b.id !== contextMenu.blockId)); setSelectedId(null); setContextMenu(null); }} onClose={() => setContextMenu(null)} />}
   </div>;
 }
 
@@ -144,20 +171,41 @@ function ToolButton({ label, icon: Icon, onClick, active }: { label: string; ico
   return <button title={label} aria-label={label} onClick={onClick} className={`flex size-8 shrink-0 items-center justify-center rounded-md transition ${active ? "bg-violet-500/20 text-violet-200" : "text-white/45 hover:bg-white/5 hover:text-white"}`}><Icon className="size-3.5" /></button>;
 }
 
-function DesignCanvas({ blocks, selectedId, onSelect, onUpdate, onGenerate, generating }: { blocks: DemoBlock[]; selectedId: string | null; onSelect: (id: string) => void; onUpdate: (id: string, patch: Partial<DemoBlock>) => void; onGenerate: () => void; generating: boolean }) {
-  return <div className="relative min-h-full w-full bg-white">{blocks.length === 0 ? <div className="flex min-h-[700px] items-center justify-center p-8 text-center text-slate-900"><div className="max-w-md"><div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-violet-100 text-violet-600"><Sparkles className="size-6" /></div><h2 className="text-xl font-bold">Start designing</h2><p className="mt-2 text-sm leading-relaxed text-slate-500">Create freely with the toolbar, or turn on AI and generate a first draft.</p><div className="mt-4 flex flex-wrap justify-center gap-2"><Button variant="outline" onClick={() => { const b: DemoBlock = { id: `shape-${Math.random().toString(36).slice(2, 9)}`, type: "shape", name: "Shape", text: "", x: 180, y: 180, width: 300, height: 160, background: "#e5e7eb", color: "#111827", radius: 16, locked: false }; onUpdate(b.id, b); onSelect(b.id); }}><Square className="mr-2 size-4" />Add shape</Button><Button className="bg-violet-600 text-white hover:bg-violet-500" onClick={onGenerate} disabled={generating}>{generating ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <WandSparkles className="mr-2 size-4" />}Generate with AI</Button></div></div></div> : blocks.map((b) => <CanvasBlock key={b.id} block={b} selected={selectedId === b.id} onSelect={() => onSelect(b.id)} onUpdate={(p) => onUpdate(b.id, p)} />)}</div>;
+function DesignCanvas({ blocks, selectedId, onSelect, onUpdate, onAdd, onContextMenu, onGenerate, generating }: { blocks: DemoBlock[]; selectedId: string | null; onSelect: (id: string) => void; onUpdate: (id: string, patch: Partial<DemoBlock>) => void; onAdd: (block: DemoBlock) => void; onContextMenu: (event: PointerEvent<HTMLDivElement>, id: string) => void; onGenerate: () => void; generating: boolean }) {
+  const addEmptyShape = () => onAdd({ id: `shape-${Math.random().toString(36).slice(2, 9)}`, type: "shape", name: "Shape", text: "", x: 180, y: 180, width: 300, height: 160, background: "#e5e7eb", color: "#111827", radius: 16, locked: false });
+  return <div className="relative min-h-full w-full bg-white" onContextMenu={(e) => e.preventDefault()}>
+    {blocks.length === 0 ? <div className="flex min-h-[700px] items-center justify-center p-8 text-center text-slate-900"><div className="max-w-md"><div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-violet-100 text-violet-600"><Sparkles className="size-6" /></div><h2 className="text-xl font-bold">Start designing</h2><p className="mt-2 text-sm leading-relaxed text-slate-500">Create freely with the toolbar, or turn on AI and generate a first draft.</p><div className="mt-4 flex flex-wrap justify-center gap-2"><Button variant="outline" onClick={addEmptyShape}><Square className="mr-2 size-4" />Add shape</Button><Button className="bg-violet-600 text-white hover:bg-violet-500" onClick={onGenerate} disabled={generating}>{generating ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <WandSparkles className="mr-2 size-4" />}Generate with AI</Button></div></div></div> : blocks.map((b, index) => <CanvasBlock key={b.id} block={b} layerIndex={index} selected={selectedId === b.id} onSelect={() => onSelect(b.id)} onUpdate={(p) => onUpdate(b.id, p)} onContextMenu={onContextMenu} />)}
+  </div>;
 }
 
-function CanvasBlock({ block, selected, onSelect, onUpdate }: { block: DemoBlock; selected: boolean; onSelect: () => void; onUpdate: (patch: Partial<DemoBlock>) => void }) {
+function CanvasBlock({ block, layerIndex, selected, onSelect, onUpdate, onContextMenu }: { block: DemoBlock; layerIndex: number; selected: boolean; onSelect: () => void; onUpdate: (patch: Partial<DemoBlock>) => void; onContextMenu: (event: PointerEvent<HTMLDivElement>, id: string) => void }) {
   const drag = useRef<{ cx: number; cy: number; x: number; y: number } | null>(null);
   const resize = useRef<{ cx: number; cy: number; w: number; h: number } | null>(null);
-  const style: CSSProperties = { position: "absolute", left: block.x, top: block.y, width: block.width, height: block.height, background: block.background, color: block.color, borderRadius: block.radius };
+  const style: CSSProperties = { position: "absolute", left: block.x, top: block.y, width: block.width, height: block.height, background: block.background, color: block.color, borderRadius: block.radius, zIndex: layerIndex + 10 };
   const down = (e: PointerEvent<HTMLDivElement>) => { e.stopPropagation(); onSelect(); if (block.locked) return; drag.current = { cx: e.clientX, cy: e.clientY, x: block.x, y: block.y }; e.currentTarget.setPointerCapture(e.pointerId); };
   const move = (e: PointerEvent<HTMLDivElement>) => { if (!drag.current || block.locked) return; onUpdate({ x: Math.max(0, Math.round(drag.current.x + e.clientX - drag.current.cx)), y: Math.max(0, Math.round(drag.current.y + e.clientY - drag.current.cy)) }); };
   const resizeDown = (e: PointerEvent<HTMLDivElement>) => { if (block.locked) return; e.stopPropagation(); resize.current = { cx: e.clientX, cy: e.clientY, w: block.width, h: block.height }; e.currentTarget.setPointerCapture(e.pointerId); };
   const resizeMove = (e: PointerEvent<HTMLDivElement>) => { if (!resize.current || block.locked) return; onUpdate({ width: Math.max(60, Math.round(resize.current.w + e.clientX - resize.current.cx)), height: Math.max(32, Math.round(resize.current.h + e.clientY - resize.current.cy)) }); };
   const cls = block.type === "heading" ? "px-2 text-5xl font-black leading-none tracking-tight" : block.type === "text" ? "px-2 text-lg leading-relaxed" : block.type === "button" ? "justify-center px-5 text-sm font-semibold shadow-lg" : block.type === "card" ? "border border-slate-200 px-6 text-xl font-bold shadow-sm" : "";
-  return <div style={style} onPointerDown={down} onPointerMove={move} onPointerUp={() => { drag.current = null; }} className={`group flex touch-none select-none items-center overflow-hidden ${cls} ${selected ? "z-30 outline outline-2 outline-violet-500 outline-offset-2" : "z-10"} ${block.locked ? "cursor-not-allowed" : "cursor-move"}`}>{block.type !== "shape" && <span contentEditable={!block.locked} suppressContentEditableWarning onPointerDown={(e) => e.stopPropagation()} onBlur={(e) => onUpdate({ text: e.currentTarget.textContent || "" })} className="w-full outline-none">{block.text}</span>}{block.locked && <Lock className="pointer-events-none absolute right-2 top-2 size-3 opacity-50" />}{selected && !block.locked && <div onPointerDown={resizeDown} onPointerMove={resizeMove} onPointerUp={() => { resize.current = null; }} className="absolute bottom-0 right-0 size-4 cursor-se-resize rounded-tl-md border-l border-t border-violet-500 bg-white" />}</div>;
+  return <div style={style} onPointerDown={down} onPointerMove={move} onPointerUp={() => { drag.current = null; }} onContextMenu={(e) => onContextMenu(e, block.id)} className={`group flex touch-none select-none items-center overflow-hidden ${cls} ${selected ? "outline outline-2 outline-violet-500 outline-offset-2" : ""} ${block.locked ? "cursor-not-allowed" : "cursor-move"}`}>{block.type !== "shape" && <span contentEditable={!block.locked} suppressContentEditableWarning onPointerDown={(e) => e.stopPropagation()} onBlur={(e) => onUpdate({ text: e.currentTarget.textContent || "" })} className="w-full outline-none">{block.text}</span>}{block.locked && <Lock className="pointer-events-none absolute right-2 top-2 size-3 opacity-50" />}{selected && !block.locked && <div onPointerDown={resizeDown} onPointerMove={resizeMove} onPointerUp={() => { resize.current = null; }} className="absolute bottom-0 right-0 size-4 cursor-se-resize rounded-tl-md border-l border-t border-violet-500 bg-white" />}</div>;
+}
+
+function CanvasContextMenu({ menu, block, onAction, onDuplicate, onDelete, onClose }: { menu: { x: number; y: number; blockId: string }; block: DemoBlock | null; onAction: (id: string, direction: "front" | "back" | "forward" | "backward") => void; onDuplicate: () => void; onDelete: () => void; onClose: () => void }) {
+  if (!block) return null;
+  const items = [
+    { label: "Bring to front", action: () => onAction(block.id, "front") },
+    { label: "Bring forward", action: () => onAction(block.id, "forward") },
+    { label: "Send backward", action: () => onAction(block.id, "backward") },
+    { label: "Send to back", action: () => onAction(block.id, "back") },
+  ];
+  return <div onPointerDown={(e) => e.stopPropagation()} style={{ position: "fixed", left: Math.min(menu.x, window.innerWidth - 210), top: Math.min(menu.y, window.innerHeight - 260), zIndex: 200 }} className="w-52 overflow-hidden rounded-xl border border-white/10 bg-[#10131a] p-1.5 text-white shadow-2xl backdrop-blur-xl">
+    <div className="border-b border-white/10 px-2.5 py-2"><div className="text-xs font-semibold">{block.name}</div><div className="text-[9px] uppercase tracking-wider text-white/35">WebEazy canvas</div></div>
+    {items.map((item) => <button key={item.label} onClick={item.action} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/75 hover:bg-violet-500/15 hover:text-white"><span>{item.label}</span></button>)}
+    <div className="my-1 h-px bg-white/10" />
+    <button onClick={onDuplicate} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/75 hover:bg-white/5 hover:text-white">Duplicate</button>
+    <button onClick={onDelete} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-red-300 hover:bg-red-500/10">Delete</button>
+    <button onClick={onClose} className="w-full rounded-lg px-2.5 py-2 text-left text-xs text-white/40 hover:bg-white/5 hover:text-white">Cancel</button>
+  </div>;
 }
 
 function PreviewWebsite({ blocks, businessName }: { blocks: DemoBlock[]; businessName: string }) {
