@@ -1,17 +1,8 @@
 /**
- * AppShell composes the persistent desktop-style chrome:
- *
- *   ┌───────────── TopToolbar ─────────────┐
- *   │ Left │        Outlet         │ Right │  ← resizable, persisted
- *   ├──────────── BottomPanel ─────────────┤
- *   └───────────── StatusBar ──────────────┘
- *
- * Window management (panel sizes, collapse state) lives in `useUi()` and is
- * persisted through PreferencesService, so layout survives reloads. Each
- * region is wrapped in an error boundary: a crash in one panel never takes
- * down the whole application.
+ * AppShell composes the persistent editor chrome. The home screen is intentionally
+ * presented as a clean launcher; editor chrome returns on the other routes.
  */
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useLocation } from "@tanstack/react-router";
 import { TopToolbar } from "./TopToolbar";
 import { LeftSidebar } from "./LeftSidebar";
 import { RightPanel } from "./RightPanel";
@@ -25,55 +16,33 @@ import { useUi } from "@/lib/core";
 
 export function AppShell() {
   const { layout, setLayout } = useUi();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  if (isHome) {
+    return (
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
+        <main className="min-h-0 flex-1 overflow-auto"><AppErrorBoundary scope="Home"><Outlet /></AppErrorBoundary></main>
+        <CommandPalette />
+        <GlobalSearch />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
-      <AppErrorBoundary scope="Toolbar">
-        <TopToolbar />
-      </AppErrorBoundary>
-
+      <AppErrorBoundary scope="Toolbar"><TopToolbar /></AppErrorBoundary>
       <div className="flex min-h-0 flex-1">
-        <AppErrorBoundary scope="Sidebar">
-          <LeftSidebar />
-        </AppErrorBoundary>
-
+        <AppErrorBoundary scope="Sidebar"><LeftSidebar /></AppErrorBoundary>
         <ResizablePanelGroup orientation="horizontal" className="min-w-0 flex-1">
           <ResizablePanel defaultSize={layout.rightPanelVisible ? 78 : 100} minSize={40}>
-            <main className="h-full min-w-0 overflow-auto">
-              <AppErrorBoundary scope="Page">
-                <Outlet />
-              </AppErrorBoundary>
-            </main>
+            <main className="h-full min-w-0 overflow-auto"><AppErrorBoundary scope="Page"><Outlet /></AppErrorBoundary></main>
           </ResizablePanel>
-
-          {layout.rightPanelVisible && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel
-                defaultSize={22}
-                minSize={14}
-                maxSize={40}
-                onResize={(size) => setLayout({ rightPanelWidth: Math.round(size.inPixels) })}
-                className="hidden md:block"
-              >
-                <AppErrorBoundary scope="Properties">
-                  <RightPanel />
-                </AppErrorBoundary>
-              </ResizablePanel>
-            </>
-          )}
+          {layout.rightPanelVisible && <><ResizableHandle withHandle /><ResizablePanel defaultSize={22} minSize={14} maxSize={40} onResize={(size) => setLayout({ rightPanelWidth: Math.round(size.inPixels) })} className="hidden md:block"><AppErrorBoundary scope="Properties"><RightPanel /></AppErrorBoundary></ResizablePanel></>}
         </ResizablePanelGroup>
       </div>
-
-      <AppErrorBoundary scope="Bottom panel">
-        <BottomPanel />
-      </AppErrorBoundary>
-      {layout.statusBarVisible && (
-        <AppErrorBoundary scope="Status bar">
-          <StatusBar />
-        </AppErrorBoundary>
-      )}
-
+      <AppErrorBoundary scope="Bottom panel"><BottomPanel /></AppErrorBoundary>
+      {layout.statusBarVisible && <AppErrorBoundary scope="Status bar"><StatusBar /></AppErrorBoundary>}
       <CommandPalette />
       <GlobalSearch />
     </div>
