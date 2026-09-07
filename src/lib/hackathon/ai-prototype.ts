@@ -1,83 +1,15 @@
-export type DemoBlockType = "heading" | "text" | "button" | "card" | "shape";
+export type DemoBlockType = "heading" | "text" | "button" | "card" | "shape" | "image";
 
-export interface DemoBlock { id: string; type: DemoBlockType; name: string; text: string; x: number; y: number; width: number; height: number; background: string; color: string; radius: number; locked: boolean; }
+export interface DemoBlock { id: string; type: DemoBlockType; name: string; text: string; x: number; y: number; width: number; height: number; background: string; color: string; radius: number; locked: boolean; src?: string; href?: string; }
 export interface GeneratedSite { businessName: string; businessType: string; tagline: string; primary: string; secondary: string; blocks: DemoBlock[]; }
 export interface AiPrototypeResult extends GeneratedSite { mode: "remote" | "local-prototype"; }
 
 const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+function detectBusiness(prompt: string) { const lower=prompt.toLowerCase(); const called=prompt.match(/(?:called|named)\s+([A-Z][\w&' -]{2,40})/i)?.[1]?.trim(); const businessName=called||"Your Business"; const businessType=lower.includes("solar")?"solar and electrical company":lower.includes("restaurant")||lower.includes("food")?"food business":lower.includes("fashion")||lower.includes("clothing")?"fashion brand":lower.includes("agency")?"creative agency":lower.includes("tech")||lower.includes("software")?"technology company":"growing business"; return {businessName,businessType}; }
+function palette(prompt:string){const l=prompt.toLowerCase(); if(l.includes("green")||l.includes("solar"))return{primary:"#22c55e",secondary:"#111827"}; if(l.includes("purple"))return{primary:"#8b5cf6",secondary:"#18181b"}; if(l.includes("blue"))return{primary:"#2563eb",secondary:"#0f172a"}; return{primary:"#6d5dfc",secondary:"#171717"};}
+function copyFor(type:string,name:string){if(type.includes("solar"))return{tagline:"Reliable energy for homes and businesses.",intro:`${name} delivers practical solar, inverter and electrical solutions designed for dependable everyday power.`,services:["Solar installation","Inverter systems","Electrical solutions"],cta:"Request a free consultation"}; if(type.includes("food"))return{tagline:"Made fresh. Made memorable.",intro:`${name} brings thoughtful food, warm service and memorable experiences together in one place.`,services:["Signature menu","Catering","Events"],cta:"Book or order today"}; if(type.includes("fashion"))return{tagline:"Style with a point of view.",intro:`${name} creates distinctive fashion for people who want their style to feel personal, confident and current.`,services:["New arrivals","Custom pieces","Style support"],cta:"Explore the collection"}; return{tagline:"Built to help your business move forward.",intro:`${name} combines clear strategy, useful services and a customer-first experience to help people get results faster.`,services:["Core service","Business support","Customer solutions"],cta:"Start a conversation"};}
+export function generateLocally(prompt:string):GeneratedSite{const{businessName,businessType}=detectBusiness(prompt);const{primary,secondary}=palette(prompt);const copy=copyFor(businessType,businessName);const blocks:DemoBlock[]=[{id:uid("hero-shape"),type:"shape",name:"Hero background",text:"",x:50,y:50,width:1010,height:310,background:secondary,color:"#fff",radius:28,locked:false},{id:uid("hero-title"),type:"heading",name:"Hero heading",text:businessName,x:100,y:105,width:600,height:70,background:"transparent",color:"#fff",radius:0,locked:false},{id:uid("hero-copy"),type:"text",name:"Hero copy",text:copy.tagline,x:100,y:185,width:560,height:58,background:"transparent",color:"#d1d5db",radius:0,locked:false},{id:uid("hero-cta"),type:"button",name:"Primary CTA",text:copy.cta,x:100,y:270,width:230,height:52,background:primary,color:"#07110a",radius:26,locked:false},{id:uid("intro"),type:"text",name:"Introduction",text:copy.intro,x:100,y:430,width:760,height:90,background:"transparent",color:"#e5e7eb",radius:0,locked:false},{id:uid("service-a"),type:"card",name:copy.services[0],text:copy.services[0],x:100,y:560,width:280,height:170,background:"#202427",color:"#fff",radius:20,locked:false},{id:uid("service-b"),type:"card",name:copy.services[1],text:copy.services[1],x:420,y:560,width:280,height:170,background:"#202427",color:"#fff",radius:20,locked:false},{id:uid("service-c"),type:"card",name:copy.services[2],text:copy.services[2],x:740,y:560,width:280,height:170,background:"#202427",color:"#fff",radius:20,locked:false}];return{businessName,businessType,tagline:copy.tagline,primary,secondary,blocks};}
 
-function detectBusiness(prompt: string) {
-  const lower = prompt.toLowerCase();
-  const called = prompt.match(/(?:called|named)\s+([A-Z][\w&' -]{2,40})/i)?.[1]?.trim();
-  const forMatch = prompt.match(/for\s+(?:a|an|the)?\s*([A-Z][\w&' -]{2,40}?)(?:\.|,|\s+(?:using|with|include|that|in)\b)/i)?.[1]?.trim();
-  const businessName = called || forMatch || "Your Business";
-  const businessType = lower.includes("solar") ? "solar and electrical company" : lower.includes("restaurant") || lower.includes("food") ? "food business" : lower.includes("fashion") || lower.includes("clothing") ? "fashion brand" : lower.includes("agency") ? "creative agency" : lower.includes("tech") || lower.includes("software") ? "technology company" : "growing business";
-  return { businessName, businessType };
-}
-function palette(prompt: string) { const lower = prompt.toLowerCase(); if (lower.includes("green") || lower.includes("solar")) return { primary: "#22c55e", secondary: "#111827" }; if (lower.includes("purple")) return { primary: "#8b5cf6", secondary: "#18181b" }; if (lower.includes("blue")) return { primary: "#2563eb", secondary: "#0f172a" }; if (lower.includes("orange")) return { primary: "#f97316", secondary: "#1c1917" }; return { primary: "#6d5dfc", secondary: "#171717" }; }
-function copyFor(type: string, name: string) {
-  if (type.includes("solar")) return { tagline: "Reliable energy for homes and businesses.", intro: `${name} delivers practical solar, inverter and electrical solutions designed for dependable everyday power.`, services: ["Solar installation", "Inverter systems", "Electrical solutions"], cta: "Request a free consultation" };
-  if (type.includes("food")) return { tagline: "Made fresh. Made memorable.", intro: `${name} brings thoughtful food, warm service and memorable experiences together in one place.`, services: ["Signature menu", "Catering", "Events"], cta: "Book or order today" };
-  if (type.includes("fashion")) return { tagline: "Style with a point of view.", intro: `${name} creates distinctive fashion for people who want their style to feel personal, confident and current.`, services: ["New arrivals", "Custom pieces", "Style support"], cta: "Explore the collection" };
-  return { tagline: "Built to help your business move forward.", intro: `${name} combines clear strategy, useful services and a customer-first experience to help people get results faster.`, services: ["Core service", "Business support", "Customer solutions"], cta: "Start a conversation" };
-}
-
-export function generateLocally(prompt: string): GeneratedSite {
-  const { businessName, businessType } = detectBusiness(prompt); const { primary, secondary } = palette(prompt); const copy = copyFor(businessType, businessName);
-  const blocks: DemoBlock[] = [
-    { id: uid("hero-shape"), type: "shape", name: "Hero background", text: "", x: 50, y: 50, width: 1010, height: 310, background: secondary, color: "#ffffff", radius: 28, locked: false },
-    { id: uid("hero-title"), type: "heading", name: "Hero heading", text: businessName, x: 100, y: 105, width: 600, height: 70, background: "transparent", color: "#ffffff", radius: 0, locked: false },
-    { id: uid("hero-copy"), type: "text", name: "Hero copy", text: copy.tagline, x: 100, y: 185, width: 560, height: 58, background: "transparent", color: "#d1d5db", radius: 0, locked: false },
-    { id: uid("hero-button"), type: "button", name: "Primary CTA", text: copy.cta, x: 100, y: 270, width: 220, height: 50, background: primary, color: "#ffffff", radius: 12, locked: false },
-    { id: uid("about"), type: "text", name: "About copy", text: copy.intro, x: 80, y: 415, width: 980, height: 70, background: "transparent", color: secondary, radius: 0, locked: false },
-    ...copy.services.map((service, index) => ({ id: uid(`service-${index}`), type: "card" as const, name: `Service ${index + 1}`, text: service, x: 80 + index * 330, y: 525, width: 300, height: 150, background: "#ffffff", color: secondary, radius: 18, locked: false })),
-    { id: uid("final-cta"), type: "button", name: "Final CTA", text: "Talk to us", x: 80, y: 730, width: 180, height: 48, background: secondary, color: "#ffffff", radius: 12, locked: false },
-  ];
-  return { businessName, businessType, tagline: copy.tagline, primary, secondary, blocks };
-}
-
-async function remoteCall(payload: Record<string, unknown>) {
-  const configured = (import.meta.env.VITE_WEBEAZY_AI_ENDPOINT as string | undefined)?.trim();
-  const endpoint = configured || "/api/webeazy-ai";
-  const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  const raw = await response.text();
-  let data: any = null;
-  try { data = raw ? JSON.parse(raw) : null; } catch { data = { raw }; }
-  if (!response.ok) {
-    const detail = data?.error || data?.message || data?.details || data?.raw || `AI endpoint returned ${response.status}`;
-    throw new Error(`AI endpoint ${response.status}: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
-  }
-  return data;
-}
-
-export async function generateWithAiPrototype(prompt: string): Promise<AiPrototypeResult> {
-  try {
-    const data = await remoteCall({ action: "generate", prompt, product: "WebEazy" });
-    if (data?.blocks?.length) return { ...data, mode: "remote" };
-    console.error("[WebEazy AI] Remote endpoint returned no editable blocks", data);
-  } catch (error) {
-    console.error("[WebEazy AI] Live generation failed — falling back to prototype engine:", error);
-  }
-  return { ...generateLocally(prompt), mode: "local-prototype" };
-}
-
-export async function refineBlock(block: DemoBlock, instruction: string, primary: string): Promise<DemoBlock> {
-  try {
-    const data = await remoteCall({ action: "refine", block, instruction, primary, product: "WebEazy" });
-    if (data?.patch) return { ...block, ...data.patch };
-    console.error("[WebEazy AI] Remote refinement returned no patch", data);
-  } catch (error) {
-    console.error("[WebEazy AI] Live refinement failed — falling back to local refinement:", error);
-  }
-  return refineBlockLocally(block, instruction, primary);
-}
-
-export function refineBlockLocally(block: DemoBlock, instruction: string, primary: string): DemoBlock {
-  const lower = instruction.toLowerCase(); const next = { ...block };
-  if (lower.includes("premium") || lower.includes("modern")) { next.radius = Math.max(next.radius, 18); if (block.type === "card") next.background = "#f8fafc"; }
-  if (lower.includes("green")) next.background = "#22c55e"; if (lower.includes("purple")) next.background = "#8b5cf6"; if (lower.includes("brand") || lower.includes("primary")) next.background = primary;
-  if (lower.includes("bigger") || lower.includes("large")) { next.width = Math.min(1100, Math.round(next.width * 1.15)); next.height = Math.min(800, Math.round(next.height * 1.12)); }
-  if (lower.includes("shorter") || lower.includes("concise")) { const words = next.text.split(/\s+/).filter(Boolean); next.text = words.slice(0, Math.max(3, Math.ceil(words.length * 0.65))).join(" "); }
-  if (lower.includes("stronger") || lower.includes("rewrite")) { if (next.type === "heading") next.text = `${next.text} — built for what comes next`; if (next.type === "button") next.text = next.text.toLowerCase().includes("start") ? "Start now" : "Get started"; }
-  return next;
-}
+async function remoteCall<T>(action:string,payload:Record<string,unknown>):Promise<T>{const endpoint=(import.meta.env.VITE_WEBEAZY_AI_ENDPOINT as string|undefined)||"/api/webeazy-ai";const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...payload})});const raw=await response.text();if(!response.ok)throw new Error(`AI endpoint ${response.status}: ${raw}`);return JSON.parse(raw) as T;}
+export async function generateWithAiPrototype(prompt:string):Promise<AiPrototypeResult>{try{return await remoteCall<AiPrototypeResult>("generate",{prompt});}catch(error){console.warn("[WebEazy AI] Live generation failed — falling back to prototype engine:",error);return{...generateLocally(prompt),mode:"local-prototype"};}}
+export async function refineBlock(block:DemoBlock,instruction:string,primary:string):Promise<DemoBlock>{try{return await remoteCall<DemoBlock>("refine",{block,instruction,primary});}catch(error){console.warn("[WebEazy AI] Live refinement failed — falling back to prototype engine:",error);const l=instruction.toLowerCase();const next={...block};if(l.includes("green"))next.background=primary;if(l.includes("purple"))next.background="#8b5cf6";if(l.includes("bigger")||l.includes("large")){next.width=Math.round(block.width*1.15);next.height=Math.round(block.height*1.15);}if(l.includes("premium")||l.includes("modern"))next.radius=Math.max(block.radius,20);if(l.includes("shorter")||l.includes("concise"))next.text=block.text.split(" ").slice(0,Math.max(4,Math.ceil(block.text.split(" ").length*.65))).join(" ");return next;}}
