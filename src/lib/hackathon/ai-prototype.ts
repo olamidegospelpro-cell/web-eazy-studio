@@ -40,17 +40,35 @@ async function remoteCall(payload: Record<string, unknown>) {
   const configured = (import.meta.env.VITE_WEBEAZY_AI_ENDPOINT as string | undefined)?.trim();
   const endpoint = configured || "/api/webeazy-ai";
   const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-  if (!response.ok) throw new Error(`AI endpoint returned ${response.status}`);
-  return response.json();
+  const raw = await response.text();
+  let data: any = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = { raw }; }
+  if (!response.ok) {
+    const detail = data?.error || data?.message || data?.details || data?.raw || `AI endpoint returned ${response.status}`;
+    throw new Error(`AI endpoint ${response.status}: ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
+  }
+  return data;
 }
 
 export async function generateWithAiPrototype(prompt: string): Promise<AiPrototypeResult> {
-  try { const data = await remoteCall({ action: "generate", prompt, product: "WebEazy" }); if (data?.blocks?.length) return { ...data, mode: "remote" }; } catch (error) { console.warn("WebEazy live AI unavailable; using local prototype engine.", error); }
+  try {
+    const data = await remoteCall({ action: "generate", prompt, product: "WebEazy" });
+    if (data?.blocks?.length) return { ...data, mode: "remote" };
+    console.error("[WebEazy AI] Remote endpoint returned no editable blocks", data);
+  } catch (error) {
+    console.error("[WebEazy AI] Live generation failed — falling back to prototype engine:", error);
+  }
   return { ...generateLocally(prompt), mode: "local-prototype" };
 }
 
 export async function refineBlock(block: DemoBlock, instruction: string, primary: string): Promise<DemoBlock> {
-  try { const data = await remoteCall({ action: "refine", block, instruction, primary, product: "WebEazy" }); if (data?.patch) return { ...block, ...data.patch }; } catch (error) { console.warn("WebEazy live refinement unavailable; using local refinement.", error); }
+  try {
+    const data = await remoteCall({ action: "refine", block, instruction, primary, product: "WebEazy" });
+    if (data?.patch) return { ...block, ...data.patch };
+    console.error("[WebEazy AI] Remote refinement returned no patch", data);
+  } catch (error) {
+    console.error("[WebEazy AI] Live refinement failed — falling back to local refinement:", error);
+  }
   return refineBlockLocally(block, instruction, primary);
 }
 
