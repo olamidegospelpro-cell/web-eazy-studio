@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const MODEL = process.env.WEBEAZY_GEMINI_MODEL || "gemini-2.5-flash-lite";
+// Gemini 2.5 Flash-Lite is no longer available to new API users.
+// Keep this overridable so the model can be changed from Vercel without a code edit.
+const MODEL = process.env.WEBEAZY_GEMINI_MODEL || "gemini-3.5-flash-lite";
 // Support the documented variable name plus the existing Vercel variable name while debugging.
 const API_KEY = process.env.GEMINI_API_KEY || process.env["Gemini-api-key"];
 
