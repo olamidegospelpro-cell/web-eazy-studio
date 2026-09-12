@@ -14,6 +14,23 @@ import { CommandPalette } from "@/components/core/CommandPalette";
 import { GlobalSearch } from "@/components/core/GlobalSearch";
 import { useUi } from "@/lib/core";
 
+function MobileExperienceBlocker() {
+  return (
+    <div className="webeazy-mobile-blocker" role="dialog" aria-modal="true" aria-labelledby="webeazy-mobile-title">
+      <div className="webeazy-mobile-card">
+        <img src="/webeazy-logo.svg" alt="WebEazy" className="webeazy-mobile-logo" />
+        <span className="webeazy-mobile-eyebrow">VISUAL WEBSITE STUDIO</span>
+        <h1 id="webeazy-mobile-title">Desktop experience recommended</h1>
+        <p>
+          WebEazy&apos;s visual studio is currently optimized for desktop screens. For the best
+          design experience, please open WebEazy on a desktop or laptop.
+        </p>
+        <div className="webeazy-mobile-note">Mobile editing is coming soon.</div>
+      </div>
+    </div>
+  );
+}
+
 export function AppShell() {
   const { layout, setLayout } = useUi();
   const location = useLocation();
@@ -25,6 +42,7 @@ export function AppShell() {
         <main className="min-h-0 flex-1 overflow-auto"><AppErrorBoundary scope="Home"><Outlet /></AppErrorBoundary></main>
         <CommandPalette />
         <GlobalSearch />
+        <MobileExperienceBlocker />
       </div>
     );
   }
@@ -45,6 +63,7 @@ export function AppShell() {
       {layout.statusBarVisible && <AppErrorBoundary scope="Status bar"><StatusBar /></AppErrorBoundary>}
       <CommandPalette />
       <GlobalSearch />
+      <MobileExperienceBlocker />
     </div>
   );
 }
