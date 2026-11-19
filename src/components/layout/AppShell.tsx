@@ -39,10 +39,9 @@ export function AppShell() {
   if (isHome) {
     return (
       <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
-        <main className="min-h-0 flex-1 overflow-auto"><AppErrorBoundary scope="Home"><Outlet /></AppErrorBoundary></main>
+        <main className="min-h-0 flex-1 overflow-y-auto"><AppErrorBoundary scope="Home"><Outlet /></AppErrorBoundary></main>
         <CommandPalette />
         <GlobalSearch />
-        <MobileExperienceBlocker />
       </div>
     );
   }

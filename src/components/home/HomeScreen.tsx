@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, FolderOpen, Plus, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  Code2,
+  Eye,
+  Layers3,
+  LayoutTemplate,
+  Menu,
+  Monitor,
+  Play,
+  SlidersHorizontal,
+  Smartphone,
+  X,
+} from "lucide-react";
 import { NewProjectWizard } from "@/components/project/wizard/NewProjectWizard";
-import { RecentProjectsPanel } from "@/components/project/RecentProjectsPanel";
 import { HackathonStudio } from "@/components/hackathon/HackathonStudio";
 import { useProject } from "@/lib/project";
 
@@ -20,6 +30,7 @@ export function HomeScreen() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
   const [studioProjectName, setStudioProjectName] = useState("Untitled project");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const open = () => setWizardOpen(true);
@@ -32,43 +43,126 @@ export function HomeScreen() {
     setStudioOpen(true);
   };
 
-  return (
-    <div className="webeazy-brand webeazy-home relative flex min-h-full flex-col overflow-hidden">
-      <img src="/webeazy-logo.svg" alt="" aria-hidden="true" className="webeazy-watermark" />
+  const scrollTo = (id: string) => {
+    setMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-9">
-        <WebEazyBrand />
-        <div className="hidden rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-medium tracking-[0.14em] text-white/40 backdrop-blur sm:block">VISUAL WEBSITE STUDIO</div>
+  const features = [
+    { icon: LayoutTemplate, title: "Visual Website Builder", copy: "Design and customize polished websites in an intuitive visual workspace." },
+    { icon: Layers3, title: "Ready-to-Use Sections", copy: "Build pages quickly with reusable sections and flexible components." },
+    { icon: Smartphone, title: "Responsive Design", copy: "Create experiences that adapt naturally across desktop, tablet and mobile." },
+    { icon: SlidersHorizontal, title: "Easy Customization", copy: "Fine-tune layouts, colours, typography, spacing and content." },
+    { icon: Eye, title: "Live Preview", copy: "Review your work instantly as the design takes shape." },
+    { icon: Code2, title: "HTML Export", copy: "Export your finished website into a clean, usable HTML file." },
+  ];
+
+  return (
+    <div className="webeazy-brand webeazy-landing">
+      <header className="webeazy-nav">
+        <div className="webeazy-nav-inner">
+          <button type="button" onClick={() => scrollTo("home")} aria-label="Go to home"><WebEazyBrand /></button>
+          <nav className="webeazy-nav-links" aria-label="Main navigation">
+            <button type="button" onClick={() => scrollTo("home")}>Home</button>
+            <button type="button" onClick={() => scrollTo("features")}>Features</button>
+            <button type="button" onClick={() => scrollTo("about")}>About</button>
+            <button type="button" onClick={() => scrollTo("contact")}>Contact</button>
+          </nav>
+          <button type="button" onClick={() => setWizardOpen(true)} className="webeazy-nav-cta">Get Started <ArrowRight className="size-3.5" /></button>
+          <button type="button" className="webeazy-menu-button" aria-expanded={menuOpen} aria-label="Toggle navigation" onClick={() => setMenuOpen((value) => !value)}>{menuOpen ? <X /> : <Menu />}</button>
+        </div>
+        {menuOpen && <nav className="webeazy-mobile-nav" aria-label="Mobile navigation"><button type="button" onClick={() => scrollTo("home")}>Home</button><button type="button" onClick={() => scrollTo("features")}>Features</button><button type="button" onClick={() => scrollTo("about")}>About</button><button type="button" onClick={() => scrollTo("contact")}>Contact</button><button type="button" onClick={() => { setMenuOpen(false); setWizardOpen(true); }}>Get Started</button></nav>}
       </header>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-5 pb-14 pt-3 sm:px-8 sm:pt-0">
-        <div className="w-full max-w-4xl">
-          <div className="mx-auto mb-10 max-w-2xl text-center">
-            <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45 backdrop-blur"><span className="size-1.5 rounded-full bg-[#22c55e] shadow-[0_0_10px_rgba(34,197,94,.75)]" />Design freely. Build intelligently.</div>
-            <h1 className="text-4xl font-semibold tracking-[-0.055em] text-[#f5f5e6] sm:text-6xl">Create Amazing <span className="text-[#22c55e]">Web Experiences</span></h1>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-white/50 sm:text-[15px]">Design. Build. Launch — all in one place. Start from a blank canvas or let WebEazy create an editable first draft with AI.</p>
+      <main>
+        <section id="home" className="webeazy-hero">
+          <div className="webeazy-hero-inner">
+            <div className="webeazy-hero-copy">
+              <div className="webeazy-eyebrow"><span />Build · Design · Launch</div>
+              <h1>Turn Your Ideas Into Real <span>Websites</span></h1>
+              <p>WebEazy is your all-in-one platform for designing, creating and launching beautiful websites — faster, easier and smarter.</p>
+              <div className="webeazy-hero-actions">
+                <button type="button" onClick={() => setWizardOpen(true)} className="webeazy-primary-button">Start Creating <ArrowRight className="size-4" /></button>
+                <button type="button" onClick={() => scrollTo("showcase")} className="webeazy-secondary-button"><Play className="size-3.5 fill-current" /> Watch Demo</button>
+              </div>
+            </div>
+
+            <div className="webeazy-hero-visual" aria-label="WebEazy website builder preview">
+              <div className="webeazy-product-glow" />
+              <div className="webeazy-mini-browser">
+                <div className="webeazy-mini-bar"><span className="mini-logo">W</span><span className="mini-nav">Home &nbsp;&nbsp; Features &nbsp;&nbsp; About</span><span className="mini-cta">Get Started</span></div>
+                <div className="webeazy-mini-body">
+                  <div className="mini-eyebrow">● BUILD · DESIGN · LAUNCH</div>
+                  <h2>Turn Your Ideas<br />Into Real <span>Websites</span></h2>
+                  <p>WebEazy is your all-in-one platform for creating beautiful websites.</p>
+                  <button type="button" tabIndex={-1}>Start Creating <ArrowRight className="size-3" /></button>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
-            <button type="button" onClick={() => setWizardOpen(true)} className="webeazy-home-card group relative overflow-hidden rounded-[22px] p-6 text-left transition duration-200 hover:-translate-y-1">
-              <div className="absolute right-0 top-0 h-28 w-28 translate-x-8 -translate-y-8 rounded-full bg-white/[0.035]" />
-              <div className="relative mb-11 flex size-11 items-center justify-center rounded-2xl bg-white/[0.06] text-[#f5f5e6] ring-1 ring-white/10"><Plus className="size-5" /></div>
-              <div className="relative"><h2 className="text-xl font-semibold tracking-[-0.025em] text-[#f5f5e6]">Create Project</h2><p className="mt-2 max-w-sm text-xs leading-6 text-white/43">Start with a clean canvas and design your website your way.</p><span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-white/75">Start blank <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1 group-hover:text-[#22c55e]" /></span></div>
-            </button>
-
-            <button type="button" disabled aria-disabled="true" title="Coming Soon" className="webeazy-home-card group relative cursor-not-allowed overflow-hidden rounded-[22px] border border-[#22c55e]/10 bg-[#22c55e]/[.035] p-6 text-left opacity-55">
-              <div className="absolute -right-8 -top-10 size-40 rounded-full bg-[#8b5cf6]/12 blur-3xl" /><div className="absolute -bottom-12 left-8 size-36 rounded-full bg-[#22c55e]/10 blur-3xl" />
-              <div className="relative mb-11 flex size-11 items-center justify-center rounded-2xl bg-[#22c55e]/10 text-[#22c55e] ring-1 ring-[#22c55e]/20"><Sparkles className="size-5" /></div>
-              <div className="relative"><div className="mb-1 flex items-center gap-2"><h2 className="text-xl font-semibold tracking-[-0.025em] text-[#f5f5e6]">Create with AI</h2><span className="rounded-full border border-[#22c55e]/20 bg-[#22c55e]/5 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wider text-[#7cf2a0]">AI Studio</span></div><p className="mt-2 max-w-sm text-xs leading-6 text-white/43">Describe your idea and get an editable website starting point in seconds.</p><span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-[#dfffe8]">Open AI Studio <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" /></span></div>
-            </button>
+        <section id="features" className="webeazy-section">
+          <div className="webeazy-section-heading">
+            <div className="webeazy-section-label">CAPABILITIES</div>
+            <h2>Everything you need to build beautifully.</h2>
+            <p>A focused toolkit for turning ideas into complete, responsive websites.</p>
           </div>
+          <div className="webeazy-feature-grid">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return <article className="webeazy-feature-card" key={feature.title}><div className="webeazy-feature-icon"><Icon /></div><h3>{feature.title}</h3><p>{feature.copy}</p></article>;
+            })}
+          </div>
+        </section>
 
-          <div className="mx-auto mt-6 flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/15 px-4 py-2.5 backdrop-blur"><div className="flex min-w-0 items-center gap-2 text-xs text-white/40"><FolderOpen className="size-4 shrink-0" /><span className="truncate">{store.bundle ? <>Open: <strong className="text-white/70">{store.bundle.manifest.name}</strong></> : "No project open"}</span></div><div className="flex shrink-0 gap-1.5"><Button size="sm" variant="ghost" className="text-white/55 hover:bg-white/5 hover:text-white" onClick={() => void store.openFromPicker()}>{store.capabilities.nativePicker ? "Open project" : "Open workspace"}</Button>{store.bundle && <Button size="sm" variant="outline" className="border-white/10 bg-white/[0.03] text-white/65 hover:bg-white/5 hover:text-white" onClick={() => openStudio(store.bundle?.manifest.name)}>Open in Studio</Button>}</div></div>
-          {store.recents.length > 0 && <div className="mx-auto mt-8 max-w-3xl"><div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">Recent projects</div><RecentProjectsPanel onNewProject={() => setWizardOpen(true)} /></div>}
-        </div>
+        <section id="about" className="webeazy-section webeazy-workflow">
+          <div className="webeazy-section-heading">
+            <div className="webeazy-section-label">HOW IT WORKS</div>
+            <h2>From idea to live website.</h2>
+          </div>
+          <div className="webeazy-steps">
+            {[["01", "Start Designing", "Begin with a blank workspace or an available starting layout."], ["02", "Customize Your Website", "Add sections, edit content, and personalize every detail."], ["03", "Preview & Export", "Review your work and export your website when it is ready."]].map(([number, title, copy], index) => <article key={number} className="webeazy-step"><div className="webeazy-step-number">{number}</div>{index < 2 && <div className="webeazy-step-line" />}<h3>{title}</h3><p>{copy}</p></article>)}
+          </div>
+        </section>
+
+        <section id="showcase" className="webeazy-section webeazy-showcase">
+          <div className="webeazy-showcase-copy">
+            <div className="webeazy-section-label">PRODUCT SHOWCASE</div>
+            <h2>A complete design workspace, made simple.</h2>
+            <p>Shape every section with a visual canvas, reusable components and immediate preview feedback.</p>
+            <button type="button" onClick={() => setWizardOpen(true)} className="webeazy-text-button">Explore the workspace <ArrowRight className="size-4" /></button>
+          </div>
+          <div className="webeazy-workspace-preview">
+            <div className="webeazy-workspace-top"><div className="workspace-logo">W</div><div className="workspace-project">WebEazy Project</div><div className="workspace-status" /><div className="workspace-export">Export</div></div>
+            <div className="webeazy-workspace-body">
+              <aside><span /><span /><span /><span /><span /></aside>
+              <div className="workspace-canvas"><div className="workspace-ruler" /><div className="workspace-page"><div className="workspace-page-nav"><b>W WebEazy</b><span>Home</span><span>Features</span><span>About</span><em>Get Started</em></div><div className="workspace-page-hero"><small>● BUILD · DESIGN · LAUNCH</small><strong>Turn Your Ideas Into<br /><b>Real Websites</b></strong><p>Design. Customize. Create.</p><i>Start Creating →</i></div></div></div>
+              <aside className="workspace-inspector"><b>Properties</b><span /><span /><span /><div /></aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="webeazy-section webeazy-final-cta">
+          <div className="webeazy-final-card">
+            <div>
+              <div className="webeazy-section-label">START CREATING</div>
+              <h2>Your Next Website Starts Here.</h2>
+              <p>Bring your ideas to life. Design, customize, and create websites with WebEazy.</p>
+            </div>
+            <button type="button" onClick={() => setWizardOpen(true)} className="webeazy-primary-button">Start Building <ArrowRight className="size-4" /></button>
+          </div>
+        </section>
       </main>
 
-      <footer className="relative z-10 border-t border-white/8 px-6 py-3 text-center text-[10px] font-medium tracking-[0.12em] text-white/25">AI handles the complexity. <span className="text-[#22c55e]">You keep the creativity.</span></footer>
+      <footer className="webeazy-footer">
+        <div className="webeazy-footer-inner">
+          <div className="webeazy-footer-brand"><WebEazyBrand /><p>A visual website creation platform for modern teams and independent creators.</p></div>
+          <div><h3>Product</h3><button type="button" onClick={() => scrollTo("features")}>Features</button><button type="button" onClick={() => scrollTo("showcase")}>Workspace</button></div>
+          <div><h3>Company</h3><button type="button" onClick={() => scrollTo("about")}>About</button><button type="button" onClick={() => scrollTo("contact")}>Contact</button></div>
+        </div>
+        <div className="webeazy-footer-bottom"><span>© {new Date().getFullYear()} WebEazy</span><span>Design · Build · Launch</span></div>
+      </footer>
       <NewProjectWizard open={wizardOpen} onOpenChange={setWizardOpen} onCreated={(name) => openStudio(name)} />
       {studioOpen && <HackathonStudio initialBusinessName={studioProjectName} onClose={() => setStudioOpen(false)} />}
     </div>

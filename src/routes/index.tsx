@@ -8,13 +8,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "WebEazy is a desktop-first visual website builder. Start a new project, open an existing one, or pick a template.",
+          "WebEazy is a visual website builder for designing, customizing and exporting modern websites.",
       },
       { property: "og:title", content: "WebEazy — Design Beautiful Websites Faster" },
       {
         property: "og:description",
         content:
-          "Desktop-first visual website builder. Local ownership, JSON export, no vendor lock-in.",
+          "Design, customize and export modern websites with WebEazy.",
       },
     ],
   }),
