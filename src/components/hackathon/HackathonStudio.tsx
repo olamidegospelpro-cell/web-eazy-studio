@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import {
-  AlignCenter, AlignRight, ArrowLeft, Bot, ChevronDown, Code2, Copy, Crop, Eye, Frame,
-  GripVertical, Image as ImageIcon, Layers as LayersIcon, Link2, Lock, LockOpen, Monitor,
-  Move, PanelLeftClose, PanelLeftOpen, Plus, RefreshCw, Scissors, Smartphone, Sparkles,
-  Square, Tablet, Trash2, Type, Undo2, Redo2, WandSparkles, ZoomIn, LayoutTemplate,
-  FolderOpen, MousePointer2, Settings2, Search, Grid3X3, SlidersHorizontal, Send, X,
-  Save, ArrowUp, ArrowDown,
+  AlignCenter, AlignLeft, AlignRight, ArrowLeft, ArrowRight, ArrowUp, ArrowDown,
+  Bot, ChevronDown, Code2, Copy, Crop, Eye, FolderOpen, Frame, Grid3X3,
+  Image as ImageIcon, Layers3, LayoutTemplate, Link2, Lock, LockOpen, Menu,
+  Monitor, Move, MousePointer2, PanelLeftClose, PanelLeftOpen, Plus, Redo2,
+  RotateCcw, Save, Search, Settings2, Share2, Smartphone, Sparkles, Square,
+  Tablet, Trash2, Type, Undo2, Upload, WandSparkles, ZoomIn, ZoomOut, Scissors,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,210 +13,310 @@ import { generateWithAiPrototype, refineBlock, type DemoBlock } from "@/lib/hack
 import { buildGeneratedSiteExportHtml, GeneratedSitePreview } from "./GeneratedSitePreview";
 
 type Viewport = "desktop" | "tablet" | "mobile";
-type Tool = "select" | "move" | "frame" | "crop" | "text" | "image" | "link" | "align-left";
-type PanelTab = "ai" | "layers" | "pages" | "assets";
-type InspectorTab = "ai" | "properties";
+type LeftTab = "layers" | "sections" | "pages" | "assets" | "ai";
+type RightTab = "properties" | "style" | "effects";
 
-const widths: Record<Viewport, number> = { desktop: 1120, tablet: 760, mobile: 390 };
-const samplePrompt = "Create a modern website for a Nigerian solar and electrical company called Vicky Tech Innovations. Use green and charcoal. Include a strong hero, services, trust-building copy and a clear contact CTA.";
-const tools: Array<[Tool, string, typeof MousePointer2]> = [
-  ["select", "Select", MousePointer2], ["move", "Move", Move], ["frame", "Frame", Frame],
-  ["text", "Text", Type], ["image", "Image", ImageIcon], ["frame", "Shape", Square],
-  ["crop", "Crop", Crop], ["link", "Link", Link2], ["align-left", "Align", AlignCenter],
+const viewportWidth: Record<Viewport, number> = { desktop: 1120, tablet: 760, mobile: 390 };
+const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+
+const starterBlocks = (name: string): DemoBlock[] => [
+  { id: "nav", type: "shape", name: "Navigation", text: "", x: 90, y: 44, width: 940, height: 72, background: "#101a13", color: "#f5f5e6", radius: 16, locked: false, shadow: false },
+  { id: "nav-logo", type: "text", name: "Logo", text: "W  WebEazy", x: 118, y: 64, width: 180, height: 32, background: "transparent", color: "#f5f5e6", radius: 0, locked: false, fontSize: 16, fontWeight: 700 },
+  { id: "nav-links", type: "text", name: "Navigation links", text: "Home       Features       About       Contact", x: 430, y: 68, width: 360, height: 28, background: "transparent", color: "#b7c2ba", radius: 0, locked: false, fontSize: 12 },
+  { id: "nav-cta", type: "button", name: "Navigation CTA", text: "Get Started", x: 875, y: 58, width: 126, height: 42, background: "#19c65b", color: "#07110a", radius: 21, locked: false, fontWeight: 800 },
+  { id: "eyebrow", type: "text", name: "Eyebrow", text: "●  BUILD · DESIGN · LAUNCH", x: 132, y: 168, width: 300, height: 28, background: "transparent", color: "#19c65b", radius: 0, locked: false, fontSize: 11, fontWeight: 700 },
+  { id: "hero", type: "heading", name: "Hero heading", text: "Turn Your Ideas\nInto Real Websites", x: 132, y: 218, width: 620, height: 150, background: "transparent", color: "#f5f5e6", radius: 0, locked: false, fontSize: 48, fontWeight: 800, lineHeight: 1.02 } as DemoBlock,
+  { id: "copy", type: "text", name: "Hero copy", text: "WebEazy is your all-in-one platform for designing, creating and launching beautiful websites — faster, easier and smarter.", x: 132, y: 390, width: 520, height: 90, background: "transparent", color: "#99a79e", radius: 0, locked: false, fontSize: 15, lineHeight: 1.65 } as DemoBlock,
+  { id: "primary", type: "button", name: "Primary CTA", text: "Start Creating  →", x: 132, y: 500, width: 180, height: 52, background: "#19c65b", color: "#07110a", radius: 26, locked: false, fontWeight: 800 },
+  { id: "secondary", type: "button", name: "Secondary CTA", text: "▶  Watch Demo", x: 324, y: 500, width: 168, height: 52, background: "#101912", color: "#f5f5e6", radius: 26, locked: false, border: "1px solid rgba(174,223,188,.18)" },
 ];
 
 export function HackathonStudio({ onClose, initialBusinessName = "Untitled project" }: { onClose: () => void; initialBusinessName?: string }) {
-  const [prompt, setPrompt] = useState(samplePrompt);
-  const [blocks, setBlocks] = useState<DemoBlock[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<DemoBlock[]>(starterBlocks(initialBusinessName));
+  const [selectedId, setSelectedId] = useState<string>("hero");
   const [viewport, setViewport] = useState<Viewport>("desktop");
-  const [preview, setPreview] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [refining, setRefining] = useState(false);
-  const [refine, setRefine] = useState("Make this more premium and modern");
-  const [aiMessage, setAiMessage] = useState("");
-  const [primary, setPrimary] = useState("#22c55e");
-  const [businessName, setBusinessName] = useState(initialBusinessName);
-  const [engineMode, setEngineMode] = useState<"remote" | "local-prototype" | null>(null);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
-  const [tool, setTool] = useState<Tool>("select");
-  const [panelTab, setPanelTab] = useState<PanelTab>("ai");
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("ai");
   const [zoom, setZoom] = useState(100);
-  const [context, setContext] = useState<{ x: number; y: number } | null>(null);
+  const [preview, setPreview] = useState(false);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [leftTab, setLeftTab] = useState<LeftTab>("sections");
+  const [rightTab, setRightTab] = useState<RightTab>("properties");
+  const [tool, setTool] = useState<"select" | "move" | "text" | "shape" | "image" | "link">("select");
+  const [businessName, setBusinessName] = useState(initialBusinessName);
+  const [savedAt, setSavedAt] = useState("Saved");
+  const [history, setHistory] = useState<DemoBlock[][]>([]);
+  const [future, setFuture] = useState<DemoBlock[][]>([]);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
+  const [context, setContext] = useState<{ x: number; y: number } | null>(null);
+  const [prompt, setPrompt] = useState("Create a premium green SaaS landing page");
+  const [generating, setGenerating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [gridVisible, setGridVisible] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const storageKey = `webeazy-project:${initialBusinessName}`;
-  const [savedAt, setSavedAt] = useState<string>("Not saved");
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      const saved = JSON.parse(raw) as { businessName: string; blocks: DemoBlock[]; primary: string; savedAt: string };
-      setBlocks(saved.blocks ?? []);
-      setBusinessName(saved.businessName ?? initialBusinessName);
-      setPrimary(saved.primary ?? "#22c55e");
-      setSavedAt(saved.savedAt ?? "Saved locally");
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "null") as { blocks: DemoBlock[]; businessName: string; savedAt: string } | null;
+      if (saved?.blocks?.length) {
+        setBlocks(saved.blocks);
+        setBusinessName(saved.businessName || initialBusinessName);
+        setSavedAt(saved.savedAt || "Saved");
+      }
     } catch {
       setSavedAt("Restore failed");
     }
   }, [storageKey, initialBusinessName]);
 
+  const selected = useMemo(() => blocks.find((block) => block.id === selectedId) || null, [blocks, selectedId]);
+
+  const commit = (next: DemoBlock[], label?: string) => {
+    setHistory((items) => [...items.slice(-29), blocks]);
+    setFuture([]);
+    setBlocks(next);
+  };
+  const update = (id: string, patch: Partial<DemoBlock>) => commit(blocks.map((block) => block.id === id ? { ...block, ...patch } : block));
+  const undo = () => {
+    if (!history.length) return;
+    const previous = history[history.length - 1];
+    setFuture((items) => [blocks, ...items]);
+    setHistory((items) => items.slice(0, -1));
+    setBlocks(previous);
+  };
+  const redo = () => {
+    if (!future.length) return;
+    const next = future[0];
+    setHistory((items) => [...items, blocks]);
+    setFuture((items) => items.slice(1));
+    setBlocks(next);
+  };
   const saveProject = () => {
-    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    localStorage.setItem(storageKey, JSON.stringify({ businessName, blocks, primary, savedAt: timestamp }));
-    setSavedAt(timestamp);
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    localStorage.setItem(storageKey, JSON.stringify({ blocks, businessName, savedAt: time }));
+    setSavedAt(time);
   };
-
-  const moveSelected = (direction: -1 | 1) => {
-    if (!selected) return;
-    setBlocks((items) => {
-      const index = items.findIndex((item) => item.id === selected.id);
-      const nextIndex = index + direction;
-      if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return items;
-      const reordered = [...items];
-      const [item] = reordered.splice(index, 1);
-      reordered.splice(nextIndex, 0, item);
-      return reordered;
-    });
-  };
-
-  const selected = useMemo(() => blocks.find((block) => block.id === selectedId) ?? null, [blocks, selectedId]);
-  const update = (id: string, patch: Partial<DemoBlock>) => setBlocks((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
-  const newId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
-
-  const addBlock = (block: DemoBlock) => { setBlocks((items) => [...items, block]); setSelectedId(block.id); setContext(null); };
-  const addText = () => addBlock({ id: newId("text"), type: "text", name: "Text", text: "Double-click to edit this text", x: 120, y: 160, width: 420, height: 70, background: "transparent", color: "#f5f5e6", radius: 0, locked: false });
-  const addShape = () => addBlock({ id: newId("shape"), type: "shape", name: "Shape", text: "", x: 140, y: 260, width: 300, height: 160, background: "#242728", color: "#f5f5e6", radius: 16, locked: false });
-  const addImage = (file: File) => { const reader = new FileReader(); reader.onload = () => addBlock({ id: newId("image"), type: "image", name: file.name.replace(/\.[^.]+$/, "") || "Image", text: "", x: 120, y: 180, width: 420, height: 280, background: "#15191b", color: "#fff", radius: 16, locked: false, src: String(reader.result) }); reader.readAsDataURL(file); };
-
-  const generate = async () => {
-    if (!prompt.trim()) return;
-    setGenerating(true);
-    try {
-      const result = await generateWithAiPrototype(prompt.trim());
-      setBlocks(result.blocks); setBusinessName(result.businessName || businessName); setPrimary(result.primary); setEngineMode(result.mode);
-      setSelectedId(result.blocks.find((block) => block.type === "heading")?.id ?? result.blocks[0]?.id ?? null);
-      setPanelTab("layers"); setInspectorTab("ai"); setAiOpen(true);
-    } finally { setGenerating(false); }
-  };
-
-  const applyRefinement = async (message: string) => {
-    if (!selected || !message.trim()) return;
-    setRefining(true);
-    try { update(selected.id, await refineBlock(selected, message.trim(), primary)); setAiMessage(""); setRefine(message.trim()); }
-    finally { setRefining(false); }
-  };
-  const refineSelected = () => void applyRefinement(refine);
-
   const exportHtml = () => {
     const html = buildGeneratedSiteExportHtml(businessName, blocks);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
-    const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "webeazy-site"}.html`; anchor.click(); URL.revokeObjectURL(url);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "webeazy-site"}.html`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
-  const duplicate = () => { if (selected) addBlock({ ...selected, id: newId("copy"), name: `${selected.name} copy`, x: selected.x + 24, y: selected.y + 24 }); };
-  const remove = () => { if (!selected) return; setBlocks((items) => items.filter((item) => item.id !== selected.id)); setSelectedId(null); setContext(null); };
+  const duplicate = () => {
+    if (!selected) return;
+    const copy = { ...selected, id: uid("copy"), name: `${selected.name} copy`, x: selected.x + 24, y: selected.y + 24 };
+    commit([...blocks, copy]);
+    setSelectedId(copy.id);
+  };
+  const removeSelected = () => {
+    if (!selected) return;
+    commit(blocks.filter((block) => block.id !== selected.id));
+    setSelectedId("");
+  };
+  const moveSelected = (direction: -1 | 1) => {
+    if (!selected) return;
+    const index = blocks.findIndex((block) => block.id === selected.id);
+    const target = index + direction;
+    if (target < 0 || target >= blocks.length) return;
+    const next = [...blocks];
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    commit(next);
+  };
+
+  const addBlock = (block: DemoBlock) => {
+    commit([...blocks, block]);
+    setSelectedId(block.id);
+  };
+  const addText = () => addBlock({ id: uid("text"), type: "text", name: "Text", text: "Double-click to edit this text", x: 180, y: 220, width: 420, height: 70, background: "transparent", color: "#f5f5e6", radius: 0, locked: false, fontSize: 16 });
+  const addShape = () => addBlock({ id: uid("shape"), type: "shape", name: "Shape", text: "", x: 180, y: 260, width: 300, height: 160, background: "#17231b", color: "#f5f5e6", radius: 16, locked: false, border: "1px solid rgba(174,223,188,.14)" });
   const addSection = (kind: string) => {
-    const y = blocks.length ? Math.max(...blocks.map((block) => block.y + block.height)) + 32 : 50;
-    const presets: Record<string, Partial<DemoBlock>> = {
-      Hero: { type: "heading", name: "Hero section", text: "Turn Your Ideas Into Real Websites", width: 620, height: 90, background: "transparent", color: "#f5f5e6", radius: 0 },
-      About: { type: "text", name: "About section", text: "We help ambitious teams turn ideas into clear, useful digital experiences.", width: 760, height: 100, background: "#15191b", color: "#f5f5e6", radius: 18 },
-      Services: { type: "card", name: "Services section", text: "Design, Development, Launch", width: 760, height: 180, background: "#202427", color: "#f5f5e6", radius: 20 },
-      Features: { type: "card", name: "Features section", text: "Fast · Flexible · Responsive", width: 760, height: 180, background: "#202427", color: "#f5f5e6", radius: 20 },
-      Testimonials: { type: "text", name: "Testimonials section", text: "“WebEazy made our launch feel effortless.”", width: 760, height: 120, background: "#15191b", color: "#f5f5e6", radius: 18 },
-      Gallery: { type: "shape", name: "Portfolio gallery", text: "", width: 760, height: 220, background: "#242728", color: "#f5f5e6", radius: 18 },
-      Pricing: { type: "card", name: "Pricing section", text: "Simple pricing · Start from $0", width: 760, height: 180, background: "#202427", color: "#f5f5e6", radius: 20 },
-      Statistics: { type: "card", name: "Statistics section", text: "98%  ·  2×  ·  24/7", width: 760, height: 140, background: "#202427", color: "#f5f5e6", radius: 20 },
-      Contact: { type: "button", name: "Contact section", text: "Start a conversation", width: 260, height: 56, background: "#22c55e", color: "#07110a", radius: 28 },
-      CTA: { type: "button", name: "Call to action", text: "Get started", width: 220, height: 56, background: "#22c55e", color: "#07110a", radius: 28 },
-      Footer: { type: "text", name: "Footer section", text: "© 2026 WebEazy · Built with care", width: 760, height: 80, background: "#15191b", color: "#a8b0b7", radius: 12 },
+    const y = blocks.length ? Math.max(...blocks.map((block) => block.y + block.height)) + 32 : 160;
+    const sectionMap: Record<string, Partial<DemoBlock>> = {
+      Hero: { type: "heading", text: "Turn Your Ideas Into Real Websites", width: 620, height: 120, fontSize: 48, fontWeight: 800 },
+      About: { type: "text", text: "We help ambitious teams turn ideas into clear, useful digital experiences.", width: 760, height: 100, background: "#101912", fontSize: 18, padding: 24, radius: 18 },
+      Services: { type: "card", text: "Design  ·  Development  ·  Launch", width: 760, height: 180, background: "#17231b", fontSize: 20, padding: 24, radius: 20 },
+      Features: { type: "card", text: "Fast  ·  Flexible  ·  Responsive", width: 760, height: 180, background: "#17231b", fontSize: 20, padding: 24, radius: 20 },
+      Testimonials: { type: "text", text: "“WebEazy made our launch feel effortless.”", width: 760, height: 120, background: "#101912", fontSize: 18, padding: 24, radius: 18 },
+      Gallery: { type: "shape", text: "", width: 760, height: 220, background: "#17231b", radius: 18 },
+      Pricing: { type: "card", text: "Simple pricing · Start from $0", width: 760, height: 180, background: "#17231b", fontSize: 20, padding: 24, radius: 20 },
+      Statistics: { type: "card", text: "98%     2×     24/7", width: 760, height: 150, background: "#17231b", fontSize: 24, padding: 24, radius: 20 },
+      Contact: { type: "button", text: "Start a conversation", width: 260, height: 56, background: "#19c65b", color: "#07110a", radius: 28, fontWeight: 800 },
+      CTA: { type: "button", text: "Get started  →", width: 220, height: 56, background: "#19c65b", color: "#07110a", radius: 28, fontWeight: 800 },
+      Footer: { type: "text", text: "© 2026 WebEazy · Built with care", width: 760, height: 80, background: "#101912", fontSize: 12, padding: 24, radius: 12 },
     };
-    const preset = presets[kind] ?? presets.Hero;
-    addBlock({ id: newId("section"), type: preset.type ?? "text", name: preset.name ?? `${kind} section`, text: preset.text ?? "", x: kind === "Hero" ? 100 : 180, y, width: preset.width ?? 760, height: preset.height ?? 180, background: preset.background ?? "#15191b", color: preset.color ?? "#f5f5e6", radius: preset.radius ?? 18, locked: false });
+    const preset = sectionMap[kind] || sectionMap.Hero;
+    addBlock({ id: uid("section"), type: preset.type || "text", name: `${kind} section`, text: preset.text || "", x: kind === "Hero" ? 132 : 180, y, width: preset.width || 760, height: preset.height || 180, background: preset.background || "transparent", color: preset.color || "#f5f5e6", radius: preset.radius || 0, locked: false, fontSize: preset.fontSize, fontWeight: preset.fontWeight, padding: preset.padding, border: preset.border });
   };
-  const align = (kind: "left" | "center" | "right") => { if (!selected) return; const x = kind === "left" ? 40 : kind === "center" ? (widths[viewport] - selected.width) / 2 : widths[viewport] - selected.width - 40; update(selected.id, { x: Math.max(0, x) }); };
-  const toolClick = (next: Tool) => { setTool(next); if (next === "text") addText(); if (next === "frame") addShape(); if (next === "image") inputRef.current?.click(); if (next === "link" && selected) { const href = window.prompt("Enter link URL", selected.href || "https://"); if (href !== null) update(selected.id, { href }); } if (next === "align-left") align("left"); };
-  const startDrag = (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => { if (tool !== "move" || block.locked) return; event.stopPropagation(); setSelectedId(block.id); setDragId(block.id); event.currentTarget.setPointerCapture(event.pointerId); };
-  const moveBlock = (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => { if (dragId !== block.id || tool !== "move") return; const parent = event.currentTarget.parentElement; if (!parent) return; const rect = parent.getBoundingClientRect(); const scale = rect.width / widths[viewport]; update(block.id, { x: Math.max(0, (event.clientX - rect.left) / scale - block.width / 2), y: Math.max(0, (event.clientY - rect.top) / scale - block.height / 2) }); };
-  const stopDrag = () => setDragId(null);
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      const result = await generateWithAiPrototype(prompt);
+      commit(result.blocks);
+      setBusinessName(result.businessName);
+      setSelectedId(result.blocks.find((block) => block.type === "heading")?.id || result.blocks[0]?.id || "");
+    } finally {
+      setGenerating(false);
+    }
+  };
+  const uploadImage = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => addBlock({ id: uid("image"), type: "image", name: file.name, text: "", x: 180, y: 220, width: 420, height: 280, background: "#101912", color: "#fff", radius: 16, locked: false, src: String(reader.result) });
+    reader.readAsDataURL(file);
+  };
+  const share = async () => {
+    const shareData = { title: businessName, text: "WebEazy workspace project" };
+    if (navigator.share) await navigator.share(shareData).catch(() => undefined);
+    else await navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
+  };
+
+  const align = (direction: "left" | "center" | "right") => {
+    if (!selected) return;
+    const x = direction === "left" ? 40 : direction === "center" ? (viewportWidth[viewport] - selected.width) / 2 : viewportWidth[viewport] - selected.width - 40;
+    update(selected.id, { x: Math.max(0, x), textAlign: direction });
+  };
+  const startDrag = (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => {
+    if (tool !== "move" || block.locked) return;
+    event.stopPropagation();
+    setSelectedId(block.id);
+    setDragId(block.id);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveBlock = (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => {
+    if (dragId !== block.id || tool !== "move") return;
+    const parent = event.currentTarget.parentElement?.parentElement;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    const scale = rect.width / viewportWidth[viewport];
+    setBlocks((items) => items.map((item) => item.id === block.id ? { ...item, x: Math.max(0, (event.clientX - rect.left) / scale - item.width / 2), y: Math.max(0, (event.clientY - rect.top) / scale - item.height / 2) } : item));
+  };
+
+  const toolbarTools: Array<{ id: typeof tool; label: string; icon: ReactNode }> = [
+    { id: "select", label: "Select", icon: <MousePointer2 /> },
+    { id: "move", label: "Move", icon: <Move /> },
+    { id: "shape", label: "Frame", icon: <Frame /> },
+    { id: "text", label: "Text", icon: <Type /> },
+    { id: "shape", label: "Shape", icon: <Square /> },
+    { id: "image", label: "Image", icon: <ImageIcon /> },
+  ];
 
   return (
-    <div className="webeazy-studio fixed inset-0 z-[100] flex flex-col overflow-hidden bg-[#090b0c] text-white" onPointerDown={() => { if (context) setContext(null); }}>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) addImage(file); event.currentTarget.value = ""; }} />
-      <header className="relative flex h-[66px] shrink-0 items-center justify-between border-b border-white/[.08] bg-[#0f1217] px-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <button onClick={onClose} className="rounded-lg p-2 text-white/55 hover:bg-white/5 hover:text-white"><ArrowLeft className="size-4" /></button>
-          <img src="/webeazy-logo.svg" alt="WebEazy" className="size-9 object-contain" />
-          <div className="h-7 w-px bg-white/10" />
-          <button className="flex min-w-[130px] items-center gap-2 rounded-lg border border-white/[.06] bg-[#151920] px-3 py-2 text-xs"><span className="truncate">{businessName}</span><ChevronDown className="ml-auto size-3 text-white/30" /></button>
-          <button title="Project settings" onClick={() => setSettingsOpen((value) => !value)} className={`rounded-lg border p-2 ${settingsOpen ? "border-[#22c55e]/50 bg-[#22c55e]/10 text-[#b7f7c9]" : "border-white/10 text-white/45 hover:bg-white/5 hover:text-white"}`}><Settings2 className="size-4" /></button>
-          <span className="hidden items-center gap-1.5 pl-1 text-[11px] text-white/40 sm:flex"><i className="size-1.5 rounded-full bg-[#22c55e]" />{savedAt === "Not saved" ? "Saved locally" : `Saved ${savedAt}`}</span>
+    <div className="webeazy-studio" onPointerDown={() => context && setContext(null)}>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadImage(file); event.currentTarget.value = ""; }} />
+      <header className="studio-topbar">
+        <div className="studio-brand">
+          <button className="studio-icon-button" onClick={onClose} title="Back"><ArrowLeft /></button>
+          <div className="studio-logo"><span>W</span></div>
+          <button className="studio-project-name" onClick={() => setSettingsOpen((value) => !value)}>{businessName}<ChevronDown /></button>
+          <div className="studio-save"><span />Saved {savedAt}</div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="hidden md:flex"><IconButton icon={<Undo2 />} label="Undo" /><IconButton icon={<Redo2 />} label="Redo" /></div>
-          <ComingSoonButton label="AI Assistant" className="hidden lg:flex" />
-          <div className="hidden rounded-lg border border-white/10 bg-black/20 p-0.5 md:flex">{(["desktop", "tablet", "mobile"] as Viewport[]).map((value) => <button key={value} onClick={() => setViewport(value)} className={`rounded-md p-1.5 ${viewport === value ? "bg-white/10 text-white" : "text-white/30"}`}>{value === "desktop" ? <Monitor className="size-3.5" /> : value === "tablet" ? <Tablet className="size-3.5" /> : <Smartphone className="size-3.5" />}</button>)}</div>
-          <Button variant="outline" size="sm" onClick={() => setPreview((value) => !value)} className="h-9 border-white/10 bg-[#151920] text-white/80"><Eye className="mr-1.5 size-3.5" />{preview ? "Design" : "Preview"}</Button>
-          <Button variant="outline" size="sm" onClick={saveProject} className="h-9 border-white/10 bg-[#151920] text-white/80"><Save className="mr-1.5 size-3.5" />Save</Button>
-          <Button size="sm" onClick={exportHtml} disabled={!blocks.length} className="h-9 bg-[#22c55e] text-[#07110a] hover:bg-[#4ade80]"><Code2 className="mr-1.5 size-3.5" />Export</Button>
+        <div className="studio-history">
+          <button disabled={!history.length} onClick={undo} title="Undo"><Undo2 /></button>
+          <button disabled={!future.length} onClick={redo} title="Redo"><Redo2 /></button>
+          <span />
+          <button onClick={() => setGridVisible((value) => !value)} title="Toggle grid" className={gridVisible ? "active" : ""}><Grid3X3 /></button>
         </div>
-        {settingsOpen && <div className="absolute left-[180px] top-[60px] z-[220] w-64 rounded-xl border border-white/10 bg-[#14181e] p-4 shadow-2xl"><div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold">Project settings</span><button onClick={() => setSettingsOpen(false)}><X className="size-4 text-white/45" /></button></div><label className="text-[10px] uppercase tracking-[.12em] text-white/40">Project name</label><input value={businessName} onChange={(event) => setBusinessName(event.target.value)} className="mt-2 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs outline-none" /><p className="mt-3 text-[10px] leading-4 text-white/35">Project settings are local to this current studio session.</p></div>}
+        <div className="studio-actions">
+          <button className="studio-ai-button" onClick={() => setLeftTab("ai")}><Bot />AI Assistant<span /></button>
+          <button className="studio-share" onClick={share}><Share2 />Share</button>
+          <button onClick={() => setPreview((value) => !value)} className="studio-preview"><Eye />{preview ? "Design" : "Preview"}</button>
+          <button onClick={exportHtml} disabled={!blocks.length} className="studio-export"><Code2 />Export</button>
+          <button className="studio-avatar" title="Account">G</button>
+        </div>
+        {settingsOpen && <div className="studio-settings-popover"><div><b>Project settings</b><button onClick={() => setSettingsOpen(false)}>×</button></div><label>Project name<input value={businessName} onChange={(event) => setBusinessName(event.target.value)} /></label><button onClick={saveProject}><Save />Save project</button></div>}
       </header>
 
-      <div className="relative flex min-h-0 flex-1">
-        {!preview && leftOpen && <aside className="hidden w-[356px] shrink-0 border-r border-white/[.08] bg-[#101318] lg:flex"><nav className="flex w-[76px] shrink-0 flex-col items-center border-r border-white/[.07] bg-[#0c0f14] py-3"><Rail active={panelTab === "ai"} icon={<Bot />} label="AI" onClick={() => setPanelTab("ai")} /><Rail active={panelTab === "layers"} icon={<LayersIcon />} label="Layers" onClick={() => setPanelTab("layers")} /><Rail active={panelTab === "pages"} icon={<LayoutTemplate />} label="Sections" onClick={() => setPanelTab("pages")} /><Rail active={panelTab === "assets"} icon={<FolderOpen />} label="Assets" onClick={() => setPanelTab("assets")} /><div className="mt-auto"><Rail icon={<Settings2 />} label="Settings" onClick={() => setSettingsOpen((value) => !value)} /></div></nav><div className="min-w-0 flex-1 overflow-hidden"><div className="flex h-[48px] items-center justify-between border-b border-white/[.07] px-4"><span className="text-xs font-semibold">{panelTab === "ai" ? "AI Assistant" : panelTab === "pages" ? "Sections" : panelTab[0].toUpperCase() + panelTab.slice(1)}</span><button onClick={() => setLeftOpen(false)} className="p-1.5 text-white/35"><PanelLeftClose className="size-4" /></button></div>{panelTab === "ai" && <ComingSoonPanel />}{panelTab === "layers" && <LayersPanel blocks={blocks} selectedId={selectedId} onSelect={setSelectedId} />}{panelTab === "pages" && <SectionLibrary onAdd={addSection} />}{panelTab === "assets" && <div className="p-3"><div className="mb-3 flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-white/35"><Search className="size-3.5" />Search assets</div><button onClick={() => inputRef.current?.click()} className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 text-white/40 hover:text-white"><ImageIcon /><span className="text-xs">Upload image</span></button></div>}</div></aside>}
-        {!preview && !leftOpen && <button onClick={() => setLeftOpen(true)} className="absolute left-2 top-2 z-50 rounded-lg border border-white/10 bg-[#10131a] p-2"><PanelLeftOpen className="size-4" /></button>}
+      <div className="studio-shell">
+        <aside className="studio-left">
+          <nav className="studio-left-rail">
+            <button className={leftTab === "layers" ? "active" : ""} onClick={() => { setLeftOpen(true); setLeftTab("layers"); }} title="Layers"><Layers3 /><span>Layers</span></button>
+            <button className={leftTab === "sections" ? "active" : ""} onClick={() => { setLeftOpen(true); setLeftTab("sections"); }} title="Sections"><LayoutTemplate /><span>Sections</span></button>
+            <button className={leftTab === "pages" ? "active" : ""} onClick={() => { setLeftOpen(true); setLeftTab("pages"); }} title="Pages"><FolderOpen /><span>Pages</span></button>
+            <button className={leftTab === "assets" ? "active" : ""} onClick={() => { setLeftOpen(true); setLeftTab("assets"); }} title="Assets"><ImageIcon /><span>Assets</span></button>
+            <button className={leftTab === "ai" ? "active" : ""} onClick={() => { setLeftOpen(true); setLeftTab("ai"); }} title="AI"><Bot /><span>AI</span></button>
+          </nav>
+          {leftOpen && <div className="studio-left-content"><div className="studio-panel-heading"><b>{leftTab === "ai" ? "AI Assistant" : leftTab[0].toUpperCase() + leftTab.slice(1)}</b><button onClick={() => setLeftOpen(false)}><PanelLeftClose /></button></div>
+            {leftTab === "layers" && <div className="studio-layer-tree">{blocks.length ? blocks.map((block) => <button key={block.id} className={selectedId === block.id ? "selected" : ""} onClick={() => setSelectedId(block.id)}><GripIcon /><span>{block.name}</span>{block.locked && <Lock />}</button>) : <div className="studio-empty">No elements yet</div>}</div>}
+            {leftTab === "sections" && <div className="studio-section-library">{["Hero", "About", "Services", "Features", "Testimonials", "Gallery", "Pricing", "Statistics", "Contact", "CTA", "Footer"].map((section) => <button key={section} onClick={() => addSection(section)}><div><i /><i /><i /></div><span>{section}<Plus /></span></button>)}</div>}
+            {leftTab === "pages" && <div className="studio-pages"><button className="selected"><LayoutTemplate /><span><b>Home</b><small>/</small></span></button><button onClick={() => addSection("Hero")}><Plus /><span>Add page</span></button></div>}
+            {leftTab === "assets" && <div className="studio-assets"><div className="studio-search"><Search /><input placeholder="Search assets" /></div><button onClick={() => inputRef.current?.click()}><Upload /><b>Upload image</b><small>PNG, JPG or SVG</small></button></div>}
+            {leftTab === "ai" && <div className="studio-ai-panel"><div><WandSparkles /><b>Describe a layout</b></div><Textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} /><button onClick={generate} disabled={generating}>{generating ? "Generating..." : "Generate layout"}<Sparkles /></button></div>}
+          </div>}
+        </aside>
 
-        <main className="relative min-w-0 flex-1 overflow-hidden bg-[#080a0c]">
-          {preview ? <GeneratedSitePreview blocks={blocks} businessName={businessName} viewport={viewport} onBack={() => setPreview(false)} /> : <div className="flex h-full min-h-0 flex-col"><div className="flex h-[58px] shrink-0 items-center justify-between border-b border-white/[.08] bg-[#0e1116] px-2"><div className="flex min-w-0 items-center gap-0.5 overflow-x-auto">{tools.map(([toolName, label, Icon], index) => <button key={`${label}-${index}`} onClick={() => toolClick(toolName)} className={`flex shrink-0 flex-col items-center gap-0.5 rounded-lg px-2.5 py-1.5 text-[9px] ${tool === toolName ? "bg-[#8b5cf6] text-white" : "text-white/45 hover:bg-white/5 hover:text-white"}`}><Icon className="size-4" /><span>{label}</span></button>)}<span className="mx-1 h-7 w-px bg-white/10" /><IconButton icon={<AlignCenter />} label="Align center" onClick={() => align("center")} /><IconButton icon={<AlignRight />} label="Align right" onClick={() => align("right")} /><IconButton icon={<Plus />} label="Add text" onClick={addText} /><IconButton icon={<Grid3X3 />} label="Grid" /></div><div className="hidden items-center gap-1 sm:flex"><button onClick={() => setZoom((value) => Math.max(25, value - 10))}>−</button><span className="min-w-10 text-center text-[10px] text-white/50">{zoom}%</span><button onClick={() => setZoom((value) => Math.min(150, value + 10))}>+</button>          <ZoomIn className="ml-1 size-3.5 text-white/25" /><button onClick={() => moveSelected(-1)} disabled={!selected} title="Move up" className="p-1.5 text-white/40 disabled:opacity-30"><ArrowUp className="size-3.5" /></button><button onClick={() => moveSelected(1)} disabled={!selected} title="Move down" className="p-1.5 text-white/40 disabled:opacity-30"><ArrowDown className="size-3.5" /></button><button onClick={duplicate} className="ml-2 p-1.5 text-white/40"><Copy className="size-3.5" /></button><button onClick={remove} className="p-1.5 text-white/40 hover:text-red-300"><Trash2 className="size-3.5" /></button></div></div><div className="relative min-h-0 flex-1 overflow-auto bg-[#0b0e11]"><div className="min-h-full min-w-max p-8"><div className="relative mx-auto overflow-hidden border border-white/[.08] bg-[#15191b] shadow-2xl" style={{ width: widths[viewport] * zoom / 100, minHeight: 760 * zoom / 100 }}><div className="relative" style={{ width: widths[viewport], minHeight: 760, transform: `scale(${zoom / 100})`, transformOrigin: "top left", marginBottom: `${760 * (zoom / 100 - 1)}px`, marginRight: `${widths[viewport] * (zoom / 100 - 1)}px` }}><div className="absolute inset-0 opacity-[.18]" style={{ backgroundImage: "radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1px)", backgroundSize: `${16 * zoom / 100}px ${16 * zoom / 100}px` }} /><InnerCanvas blocks={blocks} selectedId={selectedId} tool={tool} onSelect={setSelectedId} onContext={(event, block) => { event.preventDefault(); event.stopPropagation(); setSelectedId(block.id); setContext({ x: event.clientX, y: event.clientY }); }} onDragStart={startDrag} onDragMove={moveBlock} onDragEnd={stopDrag} onGenerate={() => void generate()} generating={generating} businessName={businessName} /></div></div></div></div></div>}
+        <main className="studio-main">
+          {!preview && <div className="studio-toolbox">
+            {toolbarTools.map((item, index) => <button key={`${item.label}-${index}`} title={item.label} className={item.label === "Select" || item.label === "Move" || item.label === "Text" || item.label === "Shape" || item.label === "Image" && tool === item.id ? "active" : ""} onClick={() => { setTool(item.id); if (item.label === "Text") addText(); if (item.label === "Shape") addShape(); if (item.label === "Image") inputRef.current?.click(); }}><span>{item.icon}</span><small>{item.label}</small></button>)}
+            <i />
+            <button title="Align left" onClick={() => align("left")}><span><AlignLeft /></span><small>Align</small></button>
+            <button title="Align center" onClick={() => align("center")}><span><AlignCenter /></span><small>Center</small></button>
+            <button title="Align right" onClick={() => align("right")}><span><AlignRight /></span><small>Right</small></button>
+            <i />
+            <button title="Duplicate" onClick={duplicate} disabled={!selected}><span><Copy /></span><small>Copy</small></button>
+            <button title="Delete" onClick={removeSelected} disabled={!selected}><span><Trash2 /></span><small>Delete</small></button>
+          </div>}
+          {preview ? <GeneratedSitePreview blocks={blocks} businessName={businessName} viewport={viewport} onBack={() => setPreview(false)} /> : <div className="studio-canvas-area">
+            <div className="studio-viewport-bar">
+              {(["desktop", "tablet", "mobile"] as Viewport[]).map((value) => <button key={value} className={viewport === value ? "active" : ""} title={value} onClick={() => setViewport(value)}>{value === "desktop" ? <Monitor /> : value === "tablet" ? <Tablet /> : <Smartphone />}</button>)}
+              <span />
+              <button onClick={() => setZoom((value) => Math.max(25, value - 10))}><ZoomOut /></button>
+              <b>{zoom}%</b>
+              <button onClick={() => setZoom((value) => Math.min(150, value + 10))}><ZoomIn /></button>
+            </div>
+            <div className="studio-scroll">
+              <div className="studio-rulers"><div className="ruler-x" /><div className="ruler-y" /></div>
+              <div className={`studio-artboard ${gridVisible ? "grid" : ""}`} style={{ width: viewportWidth[viewport] * zoom / 100, minHeight: 760 * zoom / 100 }}>
+                <div className="studio-artboard-inner" style={{ width: viewportWidth[viewport], minHeight: 760, transform: `scale(${zoom / 100})`, transformOrigin: "top left" }}>
+                  {blocks.map((block, index) => <CanvasBlock key={block.id} block={block} index={index} selected={selectedId === block.id} tool={tool} onSelect={setSelectedId} onContext={(event) => { event.preventDefault(); event.stopPropagation(); setSelectedId(block.id); setContext({ x: event.clientX, y: event.clientY }); }} onDragStart={startDrag} onDragMove={moveBlock} onDragEnd={() => setDragId(null)} />)}
+                </div>
+              </div>
+            </div>
+          </div>}
         </main>
 
-        {!preview && rightOpen && <aside className="hidden w-[304px] shrink-0 border-l border-white/[.08] bg-[#101318] xl:flex"><div className="flex min-h-0 flex-1 flex-col"><div className="flex h-[48px] shrink-0 items-center gap-1 border-b border-white/[.07] px-3"><ComingSoonButton label="AI" className="rounded-md px-3 py-2 text-[10px]" /><button onClick={() => setInspectorTab("properties")} className={`rounded-md px-3 py-2 text-[10px] ${inspectorTab === "properties" ? "bg-[#8b5cf6]/15 text-white" : "text-white/35"}`}><SlidersHorizontal className="mr-1 inline size-3" />Properties</button></div>{inspectorTab === "properties" ? <Properties selected={selected} update={update} primary={primary} setPrimary={setPrimary} /> : <ComingSoonPanel compact />}</div></aside>}
+        {!preview && <aside className="studio-right">
+          <div className="studio-right-tabs">
+            {(["properties", "style", "effects"] as RightTab[]).map((tab) => <button key={tab} className={rightTab === tab ? "active" : ""} onClick={() => setRightTab(tab)}>{tab}</button>)}
+          </div>
+          {rightTab === "properties" && <PropertiesPanel selected={selected} update={update} moveSelected={moveSelected} />}
+          {rightTab === "style" && <StylePanel selected={selected} update={update} />}
+          {rightTab === "effects" && <EffectsPanel selected={selected} update={update} />}
+        </aside>}
       </div>
-
-      {context && <div className="fixed z-[200] w-48 rounded-xl border border-white/10 bg-[#14181e] p-1.5 text-xs shadow-2xl" style={{ left: context.x, top: context.y }} onPointerDown={(event) => event.stopPropagation()}><MenuItem icon={<Copy />} label="Duplicate" onClick={duplicate} /><MenuItem icon={<Scissors />} label="Delete" onClick={remove} danger /><MenuItem icon={selected?.locked ? <LockOpen /> : <Lock />} label={selected?.locked ? "Unlock" : "Lock"} onClick={() => selected && update(selected.id, { locked: !selected.locked })} /></div>}
+      {context && selected && <div className="studio-context" style={{ left: context.x, top: context.y }} onPointerDown={(event) => event.stopPropagation()}><button onClick={duplicate}><Copy />Duplicate</button><button onClick={removeSelected} className="danger"><Scissors />Delete</button><button onClick={() => update(selected.id, { locked: !selected.locked })}>{selected.locked ? <LockOpen /> : <Lock />}{selected.locked ? "Unlock" : "Lock"}</button></div>}
     </div>
   );
 }
 
-function AiPanel({ prompt, setPrompt, generating, generate, engineMode, refine, setRefine, refineSelected, refining, selected, compact = false }: { prompt: string; setPrompt: (value: string) => void; generating: boolean; generate: () => void; engineMode: "remote" | "local-prototype" | null; refine: string; setRefine: (value: string) => void; refineSelected: () => void; refining: boolean; selected: DemoBlock | null; compact?: boolean }) {
-  return <div className="min-h-0 flex-1 overflow-auto p-3"><div className="mb-3 rounded-xl border border-[#8b5cf6]/20 bg-[#8b5cf6]/[.07] p-3"><div className="flex items-center gap-2 text-xs font-semibold"><WandSparkles className="size-4 text-[#a78bfa]" />Describe your website</div><p className="mt-1 text-[10px] text-white/40">AI creates editable website elements. You remain in control.</p></div><Textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} className={`${compact ? "min-h-24" : "min-h-32"} border-white/10 bg-black/25 text-xs text-white`} /><Button className="mt-2.5 w-full bg-[#8b5cf6]" onClick={generate} disabled={generating}>{generating ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <Sparkles className="mr-2 size-4" />}{generating ? "Generating..." : "Generate with AI"}</Button><div className="mt-2 text-[10px] text-white/35">{engineMode === "remote" ? "● Live AI connected" : engineMode === "local-prototype" ? "○ Prototype fallback" : "○ AI ready"}</div><div className="mt-4 border-t border-white/10 pt-3"><div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.12em] text-white/40"><Bot className="size-3" />Refine selected</div><Textarea value={refine} onChange={(event) => setRefine(event.target.value)} className="min-h-20 border-white/10 bg-black/20 text-xs" /><Button variant="outline" onClick={refineSelected} disabled={!selected || refining} className="mt-2 w-full border-white/10 bg-white/[.03]">{refining ? "Refining..." : "Apply AI refinement"}</Button>{!selected && <p className="mt-2 text-[10px] text-white/35">Select a canvas element to refine it.</p>}</div></div>;
+function GripIcon() { return <span className="grip">⋮⋮</span>; }
+
+function CanvasBlock({ block, index, selected, tool, onSelect, onContext, onDragStart, onDragMove, onDragEnd }: { block: DemoBlock; index: number; selected: boolean; tool: string; onSelect: (id: string) => void; onContext: (event: MouseEvent<HTMLDivElement>) => void; onDragStart: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragMove: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragEnd: () => void }) {
+  const style: CSSProperties = { position: "absolute", left: block.x, top: block.y, width: block.width, height: block.height, background: block.background, color: block.color, borderRadius: block.radius, border: block.border, boxSizing: "border-box", zIndex: index + 1, padding: block.padding ?? (block.type === "card" ? 20 : 0), textAlign: block.textAlign || "left", fontSize: block.fontSize || (block.type === "heading" ? 48 : 14), fontWeight: block.fontWeight || (block.type === "heading" ? 800 : 400), lineHeight: (block as DemoBlock & { lineHeight?: number }).lineHeight || 1.45, boxShadow: block.shadow ? "0 20px 50px rgba(0,0,0,.35)" : undefined, cursor: block.locked ? "not-allowed" : tool === "move" ? "grab" : "default", overflow: "hidden" };
+  const content = block.type === "image" && block.src ? <img src={block.src} alt={block.name} /> : block.type === "shape" ? null : <span>{block.text}</span>;
+  return <div className={`studio-canvas-block ${selected ? "selected" : ""}`} style={style} onPointerDown={(event) => { event.stopPropagation(); if (tool === "move") onDragStart(event, block); else onSelect(block.id); }} onPointerMove={(event) => onDragMove(event, block)} onPointerUp={onDragEnd} onContextMenu={onContext} onDoubleClick={() => onSelect(block.id)}>{content}{selected && !block.locked && <><i className="handle nw" /><i className="handle ne" /><i className="handle sw" /><i className="handle se" /></>}</div>;
 }
-function IconButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick?: () => void }) { return <button title={label} onClick={onClick} className="rounded-md p-2 text-white/35 hover:bg-white/5 hover:text-white">{icon}</button>; }
-function ComingSoonButton({ label, className = "" }: { label: string; className?: string }) {
-  return <span role="button" aria-disabled="true" title="Coming Soon" className={`group relative inline-flex cursor-not-allowed items-center justify-center border border-[#22c55e]/10 bg-[#22c55e]/[.07] text-[#7cf2a0]/45 opacity-70 transition-colors hover:bg-[#22c55e]/10 ${className}`}><Bot className="mr-1 size-3" />{label}<span className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-[300] -translate-x-1/2 whitespace-nowrap rounded-md border border-[#22c55e]/20 bg-[#101b14] px-2 py-1 text-[9px] text-[#a9dfb9] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">Coming Soon</span></span>;
+
+function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return <label className="studio-number-field"><span>{label}</span><input type="number" value={Math.round(value)} onChange={(event) => onChange(Number(event.target.value))} /></label>;
 }
-function ComingSoonPanel({ compact = false }: { compact?: boolean }) {
-  return <div className="min-h-0 flex-1 overflow-auto p-3"><div className={`rounded-xl border border-[#22c55e]/10 bg-[#22c55e]/[.04] p-4 ${compact ? "" : "mt-1"}`}><div className="flex items-center gap-2 text-xs font-semibold text-[#a9dfb9]/70"><WandSparkles className="size-4" />AI website tools</div><p className="mt-2 text-[10px] leading-5 text-white/30">Website generation, content writing, design suggestions and image assistance are coming soon.</p><div className="mt-3 grid gap-2">{["Generate website", "Write content", "Suggest design", "Improve layout"].map((item) => <div key={item} title="Coming Soon" className="relative cursor-not-allowed rounded-lg border border-[#22c55e]/10 bg-[#22c55e]/[.05] px-3 py-2 text-[10px] text-[#9ddcad]/40">{item}</div>)}</div></div></div>;
-}
-function SectionLibrary({ onAdd }: { onAdd: (kind: string) => void }) {
-  const sections = ["Hero", "About", "Services", "Features", "Testimonials", "Gallery", "Pricing", "Statistics", "Contact", "CTA", "Footer"];
-  return <div className="grid grid-cols-2 gap-2 p-3">{sections.map((section) => <button key={section} onClick={() => onAdd(section)} className="group rounded-xl border border-white/[.08] bg-white/[.025] p-3 text-left transition-colors hover:border-[#22c55e]/30 hover:bg-[#22c55e]/[.04]"><div className="mb-3 h-12 rounded-md border border-white/[.07] bg-[#0a0d10] p-1.5"><div className="h-1.5 w-3/5 rounded bg-white/15" /><div className="mt-2 h-1.5 w-4/5 rounded bg-white/[.08]" /><div className="mt-2 h-3 w-8 rounded bg-[#22c55e]/35" /></div><div className="flex items-center justify-between text-[10px] font-medium text-white/55 group-hover:text-white">{section}<Plus className="size-3 text-white/25" /></div></button>)}</div>;
-}
-function Rail({ icon, label, active, onClick }: { icon: ReactNode; label: string; active?: boolean; onClick?: () => void }) { return <button onClick={onClick} title={label} className={`flex w-full flex-col items-center gap-1.5 px-1 py-3 text-[9px] ${active ? "text-white" : "text-white/35 hover:text-white"}`}><span className={`rounded-lg p-2 ${active ? "bg-[#8b5cf6]/15 text-[#b99cff]" : ""}`}>{icon}</span>{label}</button>; }
-function Label({ children }: { children: ReactNode }) { return <div className="text-[10px] font-semibold uppercase tracking-[.13em] text-white/38">{children}</div>; }
-function MenuItem({ icon, label, onClick, danger }: { icon: ReactNode; label: string; onClick: () => void; danger?: boolean }) { return <button onClick={onClick} className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[11px] ${danger ? "text-red-300" : "text-white/65 hover:bg-white/5 hover:text-white"}`}>{icon}<span>{label}</span></button>; }
-function LayersPanel({ blocks, selectedId, onSelect }: { blocks: DemoBlock[]; selectedId: string | null; onSelect: (id: string) => void }) { return <div className="min-h-0 flex-1 overflow-auto p-2.5">{blocks.length ? blocks.map((block) => <button key={block.id} onClick={() => onSelect(block.id)} className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-[11px] ${selectedId === block.id ? "bg-[#8b5cf6]/15 text-white" : "text-white/55 hover:bg-white/5"}`}><GripVertical className="size-3.5 text-white/20" /><span className="min-w-0 flex-1 truncate">{block.name}</span>{block.locked && <Lock className="size-3" />}</button>) : <div className="mt-6 p-5 text-center text-[11px] text-white/35">Your generated layers will appear here.</div>}</div>; }
-function InnerCanvas({ blocks, selectedId, tool, onSelect, onContext, onDragStart, onDragMove, onDragEnd, onGenerate, generating, businessName }: { blocks: DemoBlock[]; selectedId: string | null; tool: Tool; onSelect: (id: string) => void; onContext: (event: MouseEvent<HTMLDivElement>, block: DemoBlock) => void; onDragStart: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragMove: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragEnd: () => void; onGenerate: () => void; generating: boolean; businessName: string }) { return <div className="relative min-h-[760px] overflow-hidden bg-[#0c1011]" style={{ width: 1120 }}>{!blocks.length && <div className="absolute inset-0 z-20 flex items-center justify-center p-10"><div className="text-center"><WandSparkles className="mx-auto size-8 text-[#22c55e]/55" /><h2 className="mt-4 text-2xl font-semibold">Start designing {businessName}</h2><p className="mt-2 max-w-sm text-xs text-white/35">Choose a section from the library to begin.</p></div></div>}{blocks.map((block, index) => <CanvasBlock key={block.id} block={block} selected={selectedId === block.id} z={index + 1} tool={tool} onSelect={onSelect} onContext={onContext} onDragStart={onDragStart} onDragMove={onDragMove} onDragEnd={onDragEnd} />)}</div>; }
-function CanvasBlock({ block, selected, z, tool, onSelect, onContext, onDragStart, onDragMove, onDragEnd }: { block: DemoBlock; selected: boolean; z: number; tool: Tool; onSelect: (id: string) => void; onContext: (event: MouseEvent<HTMLDivElement>, block: DemoBlock) => void; onDragStart: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragMove: (event: PointerEvent<HTMLDivElement>, block: DemoBlock) => void; onDragEnd: () => void }) {
-  const style: CSSProperties = { position: "absolute", left: block.x, top: block.y, width: block.width, height: block.height, background: block.background, color: block.color, borderRadius: block.radius, zIndex: z, boxSizing: "border-box", cursor: block.locked ? "not-allowed" : tool === "move" ? "grab" : "default" };
-  const down = (event: PointerEvent<HTMLDivElement>) => { event.stopPropagation(); if (tool === "move") onDragStart(event, block); else onSelect(block.id); };
-  const doubleClick = (event: MouseEvent<HTMLDivElement>) => { if (tool === "move") { event.stopPropagation(); onDragEnd(); } };
-  let content: ReactNode;
-  if (block.type === "image" && block.src) content = <img src={block.src} alt={block.name} className="h-full w-full object-cover" />;
-  else if (block.type === "heading") content = <div className="h-full w-full overflow-hidden whitespace-pre-wrap break-words text-[48px] font-bold leading-[1.05]">{block.text}</div>;
-  else if (block.type === "button") content = <div className="flex h-full w-full items-center justify-center gap-2 px-5 text-sm font-semibold">{block.text}<span>→</span></div>;
-  else if (block.type === "card") content = <div className="flex h-full flex-col justify-end p-5 text-base font-semibold">{block.text}</div>;
-  else if (block.type === "shape") content = null;
-  else content = <div className="h-full w-full overflow-hidden whitespace-pre-wrap break-words text-base leading-6">{block.text}</div>;
-  return <div onPointerDown={down} onPointerMove={(event) => onDragMove(event, block)} onPointerUp={onDragEnd} onDoubleClick={doubleClick} onContextMenu={(event) => onContext(event, block)} style={style} className={`group border ${selected ? "border-[#8b5cf6] shadow-[0_0_0_1px_rgba(139,92,246,.55)]" : "border-transparent hover:border-white/20"}`}>{content}{selected && !block.locked && <><span className="absolute -left-1.5 -top-1.5 size-3 rounded-sm bg-[#8b5cf6]" /><span className="absolute -right-1.5 -top-1.5 size-3 rounded-sm bg-[#8b5cf6]" /><span className="absolute -bottom-1.5 -left-1.5 size-3 rounded-sm bg-[#8b5cf6]" /><span className="absolute -bottom-1.5 -right-1.5 size-3 rounded-sm bg-[#8b5cf6]" /></>}</div>;
-}
-function Properties({ selected, update, primary, setPrimary }: { selected: DemoBlock | null; update: (id: string, patch: Partial<DemoBlock>) => void; primary: string; setPrimary: (value: string) => void }) {
-  if (!selected) return <div className="flex flex-1 flex-col"><div className="border-b border-white/[.07] px-4 py-4 text-xs font-semibold">Properties</div><div className="flex flex-1 items-center justify-center p-6 text-center text-xs text-white/35"><SlidersHorizontal className="mr-2 size-5" />Select an element</div></div>;
+function PropertiesPanel({ selected, update, moveSelected }: { selected: DemoBlock | null; update: (id: string, patch: Partial<DemoBlock>) => void; moveSelected: (direction: -1 | 1) => void }) {
+  if (!selected) return <div className="studio-empty-inspector">Select an element</div>;
   const patch = (key: keyof DemoBlock, value: unknown) => update(selected.id, { [key]: value } as Partial<DemoBlock>);
-  return <div className="min-h-0 flex-1 overflow-auto"><div className="border-b border-white/[.07] px-4 py-4 text-xs font-semibold">Selected element</div><section className="border-b border-white/[.07] p-4"><div className="flex items-center justify-between"><div><p className="text-[10px] text-white/35">Element</p><p className="mt-1 text-xs font-medium">{selected.name}</p></div><button onClick={() => patch("locked", !selected.locked)}>{selected.locked ? <LockOpen className="size-4" /> : <Lock className="size-4" />}</button></div></section>{selected.type !== "shape" && selected.type !== "image" && <section className="border-b border-white/[.07] p-4"><Label>Content</Label><Textarea value={selected.text} onChange={(event) => patch("text", event.target.value)} className="mt-2 min-h-20 border-white/10 bg-white/[.025] text-xs text-white" /></section>}<section className="border-b border-white/[.07] p-4"><Label>Position &amp; Size</Label><div className="mt-2 grid grid-cols-2 gap-2">{([["X", "x"], ["Y", "y"], ["W", "width"], ["H", "height"]] as const).map(([label, key]) => <label key={key} className="rounded-md border border-white/[.08] bg-white/[.025] px-2 py-1.5"><span className="mr-1 text-[9px] text-white/30">{label}</span><input type="number" value={Math.round(Number((selected as any)[key]))} onChange={(event) => patch(key as keyof DemoBlock, Number(event.target.value))} className="w-16 bg-transparent text-xs outline-none" /></label>)}</div></section><section className="border-b border-white/[.07] p-4"><Label>Colors</Label><div className="mt-2 flex justify-between"><span className="text-[10px] text-white/35">Text</span><input type="color" value={selected.color.startsWith("#") ? selected.color : "#ffffff"} onChange={(event) => patch("color", event.target.value)} /></div><div className="mt-2 flex justify-between"><span className="text-[10px] text-white/35">Background</span><input type="color" value={selected.background.startsWith("#") ? selected.background : "#151818"} onChange={(event) => patch("background", event.target.value)} /></div></section><section className="p-4"><Label>Radius</Label><input type="range" min="0" max="48" value={selected.radius} onChange={(event) => patch("radius", Number(event.target.value))} className="mt-3 w-full accent-[#8b5cf6]" /><div className="text-right text-[10px] text-white/35">{selected.radius}px</div></section><section className="border-t border-white/[.07] p-4"><Label>Brand accent</Label><div className="mt-2 flex gap-2"><input type="color" value={primary} onChange={(event) => setPrimary(event.target.value)} /><input value={primary} onChange={(event) => setPrimary(event.target.value)} className="min-w-0 flex-1 rounded-md border border-white/10 bg-white/[.025] px-2 text-xs" /></div></section></div>;
+  return <div className="studio-inspector">
+    <section className="studio-element-name"><div><small>ELEMENT</small><b>{selected.name}</b></div><button onClick={() => patch("locked", !selected.locked)}>{selected.locked ? <LockOpen /> : <Lock />}</button></section>
+    {selected.type !== "shape" && selected.type !== "image" && <section><label className="studio-text-field"><small>CONTENT</small><Textarea value={selected.text} onChange={(event) => patch("text", event.target.value)} /></label></section>}
+    <section><h3>Position & Size</h3><div className="studio-number-grid"><NumberField label="X" value={selected.x} onChange={(value) => patch("x", value)} /><NumberField label="Y" value={selected.y} onChange={(value) => patch("y", value)} /><NumberField label="W" value={selected.width} onChange={(value) => patch("width", value)} /><NumberField label="H" value={selected.height} onChange={(value) => patch("height", value)} /></div></section>
+    <section><h3>Constraints</h3><div className="studio-constraint"><button><span>↦</span>Left</button><button><span>↥</span>Top</button></div></section>
+    <section><h3>Layer order</h3><div className="studio-layer-actions"><button onClick={() => moveSelected(-1)}><ArrowUp />Up</button><button onClick={() => moveSelected(1)}><ArrowDown />Down</button></div></section>
+  </div>;
+}
+function StylePanel({ selected, update }: { selected: DemoBlock | null; update: (id: string, patch: Partial<DemoBlock>) => void }) {
+  if (!selected) return <div className="studio-empty-inspector">Select an element</div>;
+  const patch = (key: keyof DemoBlock, value: unknown) => update(selected.id, { [key]: value } as Partial<DemoBlock>);
+  return <div className="studio-inspector"><section><h3>Fill</h3><label className="studio-color-field"><span style={{ background: selected.background }} /><input type="color" value={selected.background.startsWith("#") ? selected.background : "#101912"} onChange={(event) => patch("background", event.target.value)} /><b>{selected.background}</b></label></section><section><h3>Typography</h3><div className="studio-select-row"><button onClick={() => patch("fontWeight", selected.fontWeight === 800 ? 400 : 800)}>Bold</button><button onClick={() => patch("textAlign", "left")}><AlignLeft /></button><button onClick={() => patch("textAlign", "center")}><AlignCenter /></button><button onClick={() => patch("textAlign", "right")}><AlignRight /></button></div><NumberField label="Size" value={selected.fontSize || 16} onChange={(value) => patch("fontSize", value)} /></section><section><h3>Text color</h3><label className="studio-color-field"><span style={{ background: selected.color }} /><input type="color" value={selected.color.startsWith("#") ? selected.color : "#f5f5e6"} onChange={(event) => patch("color", event.target.value)} /><b>{selected.color}</b></label></section><section><h3>Corner radius</h3><input className="studio-range" type="range" min="0" max="48" value={selected.radius} onChange={(event) => patch("radius", Number(event.target.value))} /><b className="studio-range-value">{selected.radius}px</b></section></div>;
+}
+function EffectsPanel({ selected, update }: { selected: DemoBlock | null; update: (id: string, patch: Partial<DemoBlock>) => void }) {
+  if (!selected) return <div className="studio-empty-inspector">Select an element</div>;
+  return <div className="studio-inspector"><section><h3>Shadow</h3><button className={`studio-toggle ${selected.shadow ? "active" : ""}`} onClick={() => update(selected.id, { shadow: !selected.shadow })}><span /></button></section><section><h3>Border</h3><label className="studio-border-field"><input value={selected.border || "None"} onChange={(event) => update(selected.id, { border: event.target.value })} /></label></section><section><h3>Opacity</h3><input className="studio-range" type="range" min="0" max="100" defaultValue="100" /><b className="studio-range-value">100%</b></section></div>;
 }

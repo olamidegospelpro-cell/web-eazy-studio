@@ -1,6 +1,6 @@
 export type DemoBlockType = "heading" | "text" | "button" | "card" | "shape" | "image";
 
-export interface DemoBlock { id: string; type: DemoBlockType; name: string; text: string; x: number; y: number; width: number; height: number; background: string; color: string; radius: number; locked: boolean; src?: string; href?: string; }
+export interface DemoBlock { id: string; type: DemoBlockType; name: string; text: string; x: number; y: number; width: number; height: number; background: string; color: string; radius: number; locked: boolean; src?: string; href?: string; fontSize?: number; fontWeight?: number; textAlign?: "left" | "center" | "right"; padding?: number; shadow?: boolean; border?: string; }
 export interface GeneratedSite { businessName: string; businessType: string; tagline: string; primary: string; secondary: string; blocks: DemoBlock[]; }
 export interface AiPrototypeResult extends GeneratedSite { mode: "remote" | "local-prototype"; }
 
