@@ -21,24 +21,36 @@ import { FileSystemService, FsError } from "./fs";
 import { ProjectError, ProjectService, type CreateProjectInput } from "./project-service";
 import { RecentProjectsService } from "./recents";
 import { StorageService, type SessionSnapshot } from "./storage";
-import { createPage, DEFAULT_PREFERENCES, nowIso } from "./defaults";
+import { createPage, DEFAULT_PREFERENCES, newId, nowIso, slugify } from "./defaults";
 import { migratePageDocument } from "./website-document";
 import { PROJECT_SCHEMA_VERSION } from "./types";
 import { pageFile } from "./layout";
 import { notify } from "@/components/ds/toast";
 import type {
+  AssetRef,
   AppPreferences,
   PageDocument,
   ProjectBundle,
+  ProjectAssetDocument,
   ProjectLocation,
   RecentProject,
   SaveState,
   ValidationReport,
 } from "./types";
 
-type ChangeSet = { theme: boolean; manifest: boolean; pageIds: Set<string> };
+type ChangeSet = {
+  theme: boolean;
+  manifest: boolean;
+  pageIds: Set<string>;
+  assetIds: Set<string>;
+};
 
-const emptyChanges = (): ChangeSet => ({ theme: false, manifest: false, pageIds: new Set() });
+const emptyChanges = (): ChangeSet => ({
+  theme: false,
+  manifest: false,
+  pageIds: new Set(),
+  assetIds: new Set(),
+});
 
 export interface ProjectStore {
   ready: boolean;
@@ -62,8 +74,13 @@ export interface ProjectStore {
   renameProject(name: string): void;
   setWebsiteName(name: string): void;
   addPage(): PageDocument;
+  addImageAsset(file: File): Promise<ProjectAssetDocument>;
+  renamePage(pageId: string, name: string): void;
+  deletePage(pageId: string): void;
   updatePage(pageId: string, patch: Partial<PageDocument>): void;
-  markDirty(change?: Partial<{ theme: boolean; manifest: boolean; pageId: string }>): void;
+  markDirty(
+    change?: Partial<{ theme: boolean; manifest: boolean; pageId: string; assetId: string }>,
+  ): void;
 
   refreshRecents(): Promise<void>;
   removeRecent(id: string): Promise<void>;
@@ -79,6 +96,29 @@ export interface ProjectStore {
 }
 
 const ProjectContext = createContext<ProjectStore | null>(null);
+
+async function encodeImageAsset(file: File): Promise<ProjectAssetDocument> {
+  if (!file.type.startsWith("image/")) throw new Error("Choose a supported image file.");
+  if (file.size > 20 * 1024 * 1024) throw new Error("Images must be 20 MB or smaller.");
+  if (!globalThis.crypto?.subtle)
+    throw new Error("Secure image asset storage is not available in this browser.");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  const contentHash = Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+  return {
+    id: "",
+    name: file.name,
+    mimeType: file.type,
+    contentHash,
+    dataUrl: `data:${file.type};base64,${btoa(binary)}`,
+  };
+}
 
 function describe(error: unknown): {
   message: string;
@@ -164,6 +204,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                 theme: changes.current.theme,
                 manifest: changes.current.manifest,
                 pageIds: [...changes.current.pageIds],
+                assetIds: [...changes.current.assetIds],
               });
         changes.current = emptyChanges();
         setBundle(next);
@@ -277,6 +318,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         theme: true,
         manifest: true,
         pageIds: new Set(created.pages.map((p) => p.id)),
+        assetIds: new Set(created.assetData?.map((asset) => asset.id) ?? []),
       };
       setDirtyFlag(true);
       setSaveState("dirty");
@@ -341,10 +383,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   }, [setDirtyFlag]);
 
   const markDirty = useCallback(
-    (change?: Partial<{ theme: boolean; manifest: boolean; pageId: string }>) => {
+    (change?: Partial<{ theme: boolean; manifest: boolean; pageId: string; assetId: string }>) => {
       if (change?.theme) changes.current.theme = true;
       if (change?.manifest) changes.current.manifest = true;
       if (change?.pageId) changes.current.pageIds.add(change.pageId);
+      if (change?.assetId) changes.current.assetIds.add(change.assetId);
       setDirtyFlag(true);
       void snapshot(false);
     },
@@ -414,6 +457,100 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     markDirty();
     return page;
   }, [markDirty]);
+
+  const addImageAsset = useCallback(
+    async (file: File) => {
+      const current = bundleRef.current;
+      if (!current) throw new Error("Create or open a project before uploading images.");
+      const encoded = await encodeImageAsset(file);
+      const existing = current.assetData?.find(
+        (asset) => asset.contentHash === encoded.contentHash,
+      );
+      if (existing) return existing;
+
+      const asset: ProjectAssetDocument = { ...encoded, id: newId("asset") };
+      const reference: AssetRef = {
+        id: asset.id,
+        name: asset.name,
+        type: "image",
+        file: `assets/images/${asset.id}.asset.json`,
+      };
+      const next: ProjectBundle = {
+        ...current,
+        manifest: {
+          ...current.manifest,
+          lastModified: nowIso(),
+          assets: [...current.manifest.assets, reference],
+        },
+        assetData: [...(current.assetData ?? []), asset],
+      };
+      setBundle(next);
+      bundleRef.current = next;
+      markDirty({ manifest: true, assetId: asset.id });
+      return asset;
+    },
+    [markDirty],
+  );
+
+  const renamePage = useCallback(
+    (pageId: string, name: string) => {
+      const current = bundleRef.current;
+      const page = current?.pages.find((item) => item.id === pageId);
+      const nextName = name.trim();
+      if (!current || !page || !nextName) return;
+      const baseSlug = page.slug === "index" ? "index" : slugify(nextName);
+      let slug = baseSlug;
+      let suffix = 2;
+      while (current.pages.some((item) => item.id !== pageId && item.slug === slug)) {
+        slug = `${baseSlug}-${suffix++}`;
+      }
+      const next: ProjectBundle = {
+        ...current,
+        manifest: {
+          ...current.manifest,
+          lastModified: nowIso(),
+          pages: current.manifest.pages.map((item) =>
+            item.id === pageId ? { ...item, name: nextName, slug, file: pageFile(slug) } : item,
+          ),
+        },
+        pages: current.pages.map((item) =>
+          item.id === pageId ? { ...item, name: nextName, slug, title: nextName } : item,
+        ),
+      };
+      setBundle(next);
+      bundleRef.current = next;
+      changes.current.manifest = true;
+      changes.current.pageIds.add(pageId);
+      markDirty();
+    },
+    [markDirty],
+  );
+
+  const deletePage = useCallback(
+    (pageId: string) => {
+      const current = bundleRef.current;
+      if (
+        !current ||
+        current.pages.length <= 1 ||
+        !current.pages.some((page) => page.id === pageId)
+      )
+        return;
+      const next: ProjectBundle = {
+        ...current,
+        manifest: {
+          ...current.manifest,
+          lastModified: nowIso(),
+          pages: current.manifest.pages.filter((page) => page.id !== pageId),
+        },
+        pages: current.pages.filter((page) => page.id !== pageId),
+      };
+      setBundle(next);
+      bundleRef.current = next;
+      changes.current.manifest = true;
+      markDirty();
+    },
+    [markDirty],
+  );
 
   const updatePage = useCallback(
     (pageId: string, patch: Partial<PageDocument>) => {
@@ -518,6 +655,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         theme: true,
         manifest: true,
         pageIds: new Set(recovered.pages.map((page) => page.id)),
+        assetIds: new Set((recovered.assetData ?? []).map((asset) => asset.id)),
       };
       setDirtyFlag(true);
       setPendingRecovery(null);
@@ -556,6 +694,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       renameProject,
       setWebsiteName,
       addPage,
+      addImageAsset,
+      renamePage,
+      deletePage,
       updatePage,
       markDirty,
       refreshRecents,
@@ -589,6 +730,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       renameProject,
       setWebsiteName,
       addPage,
+      addImageAsset,
+      renamePage,
+      deletePage,
       updatePage,
       markDirty,
       refreshRecents,

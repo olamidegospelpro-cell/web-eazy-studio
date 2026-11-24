@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import "./website-operations.test.ts";
 import { migratePageDocument, websitePageSchema } from "./website-document.ts";
 import "../../components/hackathon/site-export.test.ts";
 

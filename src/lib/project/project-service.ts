@@ -31,6 +31,7 @@ import { migratePageDocument } from "./website-document";
 import type {
   PageDocument,
   ProjectBundle,
+  ProjectAssetDocument,
   ProjectLocation,
   ProjectManifest,
   ProjectTheme,
@@ -115,7 +116,7 @@ export const ProjectService = {
       extensions: {},
     };
 
-    return { manifest, theme: input.theme, pages };
+    return { manifest, theme: input.theme, pages, assetData: [] };
   },
 
   /** Creates the documented folder tree. Safe to call repeatedly. */
@@ -155,6 +156,10 @@ export const ProjectService = {
       for (const page of bundle.pages) {
         await FileSystemService.writeJson(location, pageFile(page.slug), page);
       }
+      for (const asset of bundle.assetData ?? []) {
+        const reference = manifest.assets.find((item) => item.id === asset.id);
+        if (reference) await FileSystemService.writeJson(location, reference.file, asset);
+      }
       if (!(await FileSystemService.exists(location, FILE_EDITOR_SETTINGS))) {
         await FileSystemService.writeJson(location, FILE_EDITOR_SETTINGS, defaultEditorSettings());
       }
@@ -170,14 +175,20 @@ export const ProjectService = {
       throw wrap(error, "Saving the project failed.");
     }
 
-    return { manifest, theme: bundle.theme, pages: bundle.pages, location };
+    return {
+      manifest,
+      theme: bundle.theme,
+      pages: bundle.pages,
+      assetData: bundle.assetData ?? [],
+      location,
+    };
   },
 
   /** Writes only the documents that changed — used by autosave. */
   async writeChanged(
     bundle: ProjectBundle,
     location: ProjectLocation,
-    changed: { theme?: boolean; pageIds?: string[]; manifest?: boolean },
+    changed: { theme?: boolean; pageIds?: string[]; assetIds?: string[]; manifest?: boolean },
   ): Promise<ProjectBundle> {
     const report = ValidationService.validateBundle(bundle);
     if (!report.ok) {
@@ -201,11 +212,22 @@ export const ProjectService = {
         const page = bundle.pages.find((p) => p.id === id);
         if (page) await FileSystemService.writeJson(location, pageFile(page.slug), page);
       }
+      for (const id of changed.assetIds ?? []) {
+        const asset = bundle.assetData?.find((item) => item.id === id);
+        const reference = manifest.assets.find((item) => item.id === id);
+        if (asset && reference) await FileSystemService.writeJson(location, reference.file, asset);
+      }
       await FileSystemService.writeJson(location, FILE_MANIFEST, manifest);
     } catch (error) {
       throw wrap(error, "Autosave could not write to the project folder.");
     }
-    return { manifest, theme: bundle.theme, pages: bundle.pages, location };
+    return {
+      manifest,
+      theme: bundle.theme,
+      pages: bundle.pages,
+      assetData: bundle.assetData ?? [],
+      location,
+    };
   },
 
   async writeBackup(bundle: ProjectBundle, location: ProjectLocation): Promise<void> {
@@ -215,6 +237,7 @@ export const ProjectService = {
       manifest: bundle.manifest,
       theme: bundle.theme,
       pages: bundle.pages,
+      assetData: bundle.assetData ?? [],
     });
   },
 
@@ -254,13 +277,28 @@ export const ProjectService = {
         }
         pages.push(migratePageDocument(parsed.data));
       }
+      const assetData: ProjectAssetDocument[] = [];
+      for (const ref of manifest.assets) {
+        if (ref.type !== "image" || !ref.file.endsWith(".asset.json")) continue;
+        const asset = await FileSystemService.readJson<{
+          id: string;
+          name: string;
+          mimeType: string;
+          contentHash: string;
+          dataUrl: string;
+        }>(location, ref.file);
+        if (asset.id !== ref.id || !asset.dataUrl.startsWith(`data:${asset.mimeType};base64,`)) {
+          throw new ProjectError(`Image asset "${ref.name}" is invalid and could not be opened.`);
+        }
+        assetData.push(asset);
+      }
 
       const healed = ValidationService.heal(
         { ...manifest, settings: { ...manifest.settings, location } },
         theme,
         pages,
       );
-      return { ...healed, location };
+      return { ...healed, assetData, location };
     } catch (error) {
       throw wrap(error, "The project could not be read.");
     }

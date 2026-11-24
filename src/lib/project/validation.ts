@@ -60,6 +60,16 @@ export const ValidationService = {
       );
     }
 
+    const assetRefs = new Map(bundle.manifest.assets.map((asset) => [asset.id, asset]));
+    const storedAssets = new Set((bundle.assetData ?? []).map((asset) => asset.id));
+    for (const asset of bundle.manifest.assets) {
+      if (asset.file.endsWith(".asset.json") && !storedAssets.has(asset.id)) {
+        issues.push(
+          fail("asset.missing", `Image asset "${asset.name}" has no stored content document.`),
+        );
+      }
+    }
+
     for (const ref of bundle.manifest.pages) {
       const page = bundle.pages.find((p) => p.id === ref.id);
       if (!page) {
@@ -75,6 +85,20 @@ export const ValidationService = {
       const parsed = pageSchema.safeParse(page);
       if (!parsed.success) {
         issues.push(fail("page.invalid", `${ref.file} is not a valid page document`));
+        continue;
+      }
+      const currentPage = parsed.data;
+      if ("documentType" in currentPage) {
+        for (const node of currentPage.nodes) {
+          if (node.assetId && !assetRefs.has(node.assetId)) {
+            issues.push(
+              fail(
+                "asset.reference",
+                `Node "${node.name}" references missing image asset "${node.assetId}".`,
+              ),
+            );
+          }
+        }
       }
     }
 

@@ -21,16 +21,19 @@ function nodeStyle(
 ): CSSProperties {
   const layout = nodeLayout(node, viewport);
   const parentLayout = parent ? nodeLayout(parent, viewport) : null;
+  const isContainer = node.type === "section" || node.type === "container";
   return {
-    position: "absolute",
+    position: parent?.layoutMode === "flow" ? "relative" : "absolute",
     left: layout.x - (parentLayout?.x ?? 0),
     top: layout.y - (parentLayout?.y ?? 0),
     width: layout.width,
     height: layout.height,
     background: node.background,
     color: node.color,
-    borderRadius: node.radius,
-    border: node.border,
+    borderRadius: node.shapeKind === "ellipse" ? "50%" : node.radius,
+    border: node.borderWidth
+      ? `${node.borderWidth}px solid ${node.borderColor || node.color}`
+      : node.border,
     zIndex: index + 1,
     overflow: "hidden",
     boxSizing: "border-box",
@@ -40,13 +43,25 @@ function nodeStyle(
     fontWeight: node.fontWeight || (node.type === "heading" ? 800 : 400),
     lineHeight: node.lineHeight || 1.45,
     boxShadow: node.shadow ? "0 20px 50px rgba(0,0,0,.35)" : undefined,
-    display: node.visible ? undefined : "none",
+    opacity: node.opacity ?? 1,
+    display: node.visible ? (isContainer ? "flex" : undefined) : "none",
+    flexDirection: isContainer ? node.flowDirection || "column" : undefined,
+    alignItems: isContainer ? "flex-start" : undefined,
+    gap: isContainer ? (node.gap ?? 0) : undefined,
   };
 }
 
-function nodeContent(node: WebsiteNode) {
-  if (node.type === "image" && node.src) {
-    return <img src={node.src} alt={node.name} className="h-full w-full object-cover" />;
+function nodeContent(node: WebsiteNode, assetSources: Record<string, string>) {
+  const imageSrc = node.assetId ? assetSources[node.assetId] : node.src;
+  if (node.type === "image" && imageSrc) {
+    return (
+      <img
+        src={imageSrc}
+        alt={node.alt ?? node.name}
+        className="h-full w-full"
+        style={{ objectFit: node.imageFit ?? "cover" }}
+      />
+    );
   }
   if (node.type === "shape" || node.type === "section" || node.type === "container") return null;
   if (node.type === "heading")
@@ -72,6 +87,7 @@ function renderNode(
   nodesById: Map<string, WebsiteNode>,
   indexById: Map<string, number>,
   viewport: Viewport,
+  assetSources: Record<string, string>,
   parent?: WebsiteNode,
   visited = new Set<string>(),
 ) {
@@ -80,10 +96,12 @@ function renderNode(
   const Element = node.type === "section" ? "section" : "div";
   return (
     <Element key={node.id} style={nodeStyle(node, indexById.get(node.id) ?? 0, viewport, parent)}>
-      {nodeContent(node)}
+      {nodeContent(node, assetSources)}
       {node.childIds.map((childId) => {
         const child = nodesById.get(childId);
-        return child ? renderNode(child, nodesById, indexById, viewport, node, visited) : null;
+        return child
+          ? renderNode(child, nodesById, indexById, viewport, assetSources, node, visited)
+          : null;
       })}
     </Element>
   );
@@ -94,12 +112,14 @@ export function GeneratedSitePreview({
   businessName,
   viewport,
   breakpoints = DEFAULT_WEBSITE_BREAKPOINTS,
+  assetSources = {},
   onBack,
 }: {
   blocks: WebsiteNode[];
   businessName: string;
   viewport: Viewport;
   breakpoints?: WebsiteBreakpoints;
+  assetSources?: Record<string, string>;
   onBack: () => void;
 }) {
   const width = breakpoints[viewport];
@@ -113,6 +133,7 @@ export function GeneratedSitePreview({
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
+            aria-label="Back to editor"
             className="rounded-lg p-2 text-white/55 hover:bg-white/5 hover:text-white"
           >
             <ArrowLeft className="size-4" />
@@ -136,12 +157,14 @@ export function GeneratedSitePreview({
       <div className="min-h-0 flex-1 overflow-auto">
         <div className="mx-auto min-w-max p-8">
           <main
-            className="relative overflow-hidden bg-[#0c1011] text-white shadow-[0_30px_100px_rgba(0,0,0,.55)]"
-            style={{ width, height }}
+            className="relative overflow-hidden bg-white text-black shadow-[0_30px_100px_rgba(0,0,0,.55)]"
+            style={{ width, maxWidth: "100%", minHeight: height }}
           >
             {blocks
               .filter((node) => node.parentId === null)
-              .map((node) => renderNode(node, nodesById, indexById, viewport, undefined, visited))}
+              .map((node) =>
+                renderNode(node, nodesById, indexById, viewport, assetSources, undefined, visited),
+              )}
           </main>
         </div>
       </div>

@@ -107,6 +107,14 @@ export interface AssetRef {
   type: "image" | "video" | "font" | "icon" | "other";
 }
 
+export interface ProjectAssetDocument {
+  id: string;
+  name: string;
+  mimeType: string;
+  contentHash: string;
+  dataUrl: string;
+}
+
 export interface PluginRef {
   id: string;
   name: string;
@@ -165,6 +173,8 @@ export interface PageDocument {
 
 export type WebsiteNodeType =
   "heading" | "text" | "button" | "card" | "shape" | "image" | "section" | "container";
+export type WebsiteShapeKind = "rectangle" | "ellipse" | "line";
+export type WebsiteImageFit = "cover" | "contain";
 
 export interface WebsiteNodeLayout {
   x: number;
@@ -187,14 +197,25 @@ export interface WebsiteNode {
   radius: number;
   locked: boolean;
   src?: string;
+  assetId?: string;
+  alt?: string;
+  imageFit?: WebsiteImageFit;
+  shapeKind?: WebsiteShapeKind;
   href?: string;
   fontSize?: number;
   fontWeight?: number;
+  fontFamily?: string;
   textAlign?: "left" | "center" | "right";
   padding?: number;
   shadow?: boolean;
   border?: string;
+  borderWidth?: number;
+  borderColor?: string;
+  opacity?: number;
   lineHeight?: number;
+  layoutMode?: "absolute" | "flow";
+  flowDirection?: "row" | "column";
+  gap?: number;
   parentId: string | null;
   childIds: string[];
   visible: boolean;
@@ -209,6 +230,7 @@ export interface ProjectBundle {
   manifest: ProjectManifest;
   theme: ProjectTheme;
   pages: PageDocument[];
+  assetData?: ProjectAssetDocument[];
   location?: ProjectLocation;
 }
 
