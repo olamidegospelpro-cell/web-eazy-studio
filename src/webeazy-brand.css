@@ -398,6 +398,8 @@
 .studio-canvas-block.selected{outline:1px solid #19c65b;box-shadow:0 0 0 1px rgba(25,198,91,.16)}
 .studio-canvas-block.selected:after{content:"";position:absolute;left:-1px;bottom:-18px;color:#19c65b;font-size:8px}
 .handle{position:absolute;width:7px;height:7px;border:1px solid #19c65b;background:#eafff1}
+.studio-canvas-block .handle{touch-action:none;cursor:nwse-resize}
+.studio-canvas-block .handle.ne,.studio-canvas-block .handle.sw{cursor:nesw-resize}
 .handle.nw{left:-4px;top:-4px}.handle.ne{right:-4px;top:-4px}.handle.sw{left:-4px;bottom:-4px}.handle.se{right:-4px;bottom:-4px}
 .studio-right{width:304px;flex:none;border-left:1px solid rgba(174,223,188,.08);background:#101512}
 .studio-right-tabs{height:48px;display:flex;align-items:center;gap:3px;padding:0 10px;border-bottom:1px solid rgba(174,223,188,.07)}

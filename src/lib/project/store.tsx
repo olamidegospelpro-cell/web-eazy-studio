@@ -21,9 +21,10 @@ import { FileSystemService, FsError } from "./fs";
 import { ProjectError, ProjectService, type CreateProjectInput } from "./project-service";
 import { RecentProjectsService } from "./recents";
 import { StorageService, type SessionSnapshot } from "./storage";
-import { DEFAULT_PREFERENCES, nowIso } from "./defaults";
+import { createPage, DEFAULT_PREFERENCES, nowIso } from "./defaults";
 import { migratePageDocument } from "./website-document";
 import { PROJECT_SCHEMA_VERSION } from "./types";
+import { pageFile } from "./layout";
 import { notify } from "@/components/ds/toast";
 import type {
   AppPreferences,
@@ -59,6 +60,8 @@ export interface ProjectStore {
   saveAs(): Promise<void>;
   closeProject(): void;
   renameProject(name: string): void;
+  setWebsiteName(name: string): void;
+  addPage(): PageDocument;
   updatePage(pageId: string, patch: Partial<PageDocument>): void;
   markDirty(change?: Partial<{ theme: boolean; manifest: boolean; pageId: string }>): void;
 
@@ -360,6 +363,58 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     [markDirty],
   );
 
+  const setWebsiteName = useCallback(
+    (name: string) => {
+      const current = bundleRef.current;
+      if (!current) return;
+      const next = {
+        ...current,
+        manifest: { ...current.manifest, websiteName: name.trim(), lastModified: nowIso() },
+      };
+      setBundle(next);
+      bundleRef.current = next;
+      markDirty({ manifest: true });
+    },
+    [markDirty],
+  );
+
+  const addPage = useCallback(() => {
+    const current = bundleRef.current;
+    if (!current) throw new Error("Create or open a project before adding a page.");
+    const baseName = `Page ${current.pages.length + 1}`;
+    let name = baseName;
+    let page = createPage(name);
+    let suffix = 2;
+    while (current.pages.some((existing) => existing.slug === page.slug)) {
+      name = `${baseName} ${suffix++}`;
+      page = createPage(name);
+    }
+    const next: ProjectBundle = {
+      ...current,
+      manifest: {
+        ...current.manifest,
+        lastModified: nowIso(),
+        pages: [
+          ...current.manifest.pages,
+          {
+            id: page.id,
+            name: page.name,
+            slug: page.slug,
+            file: pageFile(page.slug),
+            isHome: false,
+          },
+        ],
+      },
+      pages: [...current.pages, page],
+    };
+    setBundle(next);
+    bundleRef.current = next;
+    changes.current.manifest = true;
+    changes.current.pageIds.add(page.id);
+    markDirty();
+    return page;
+  }, [markDirty]);
+
   const updatePage = useCallback(
     (pageId: string, patch: Partial<PageDocument>) => {
       const current = bundleRef.current;
@@ -453,6 +508,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       };
       setBundle(recovered);
       bundleRef.current = recovered;
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("webeazy:project-opened", { detail: recovered }));
+      }
       const target = recovered.location ?? recovered.manifest.settings.location ?? null;
       setLocation(target);
       locationRef.current = target;
@@ -496,6 +554,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       saveAs,
       closeProject,
       renameProject,
+      setWebsiteName,
+      addPage,
       updatePage,
       markDirty,
       refreshRecents,
@@ -527,6 +587,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       saveAs,
       closeProject,
       renameProject,
+      setWebsiteName,
+      addPage,
       updatePage,
       markDirty,
       refreshRecents,

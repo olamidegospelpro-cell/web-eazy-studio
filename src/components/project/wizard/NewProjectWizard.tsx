@@ -6,9 +6,17 @@
  */
 import { useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
-import { Button, Dialog, DialogContent, DialogHeader, DialogDescription, DialogTitle } from "@/components/ds";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { ThemeService, useProject, projectSchemaHelpers } from "@/lib/project";
+import type { ProjectBundle } from "@/lib/project";
 import { StepDetails } from "./StepDetails";
 import { StepTheme } from "./StepTheme";
 import { StepTypography } from "./StepTypography";
@@ -35,7 +43,7 @@ export function NewProjectWizard({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated?: (projectName: string) => void;
+  onCreated?: (bundle: ProjectBundle) => void;
 }) {
   const { createProject, preferences } = useProject();
   const [step, setStep] = useState(1);
@@ -73,7 +81,7 @@ export function NewProjectWizard({
   const create = async () => {
     setCreating(true);
     try {
-      await createProject({
+      const bundle = await createProject({
         name: draft.name,
         websiteName: draft.websiteName,
         description: draft.description,
@@ -87,7 +95,7 @@ export function NewProjectWizard({
       const name = draft.websiteName.trim() || draft.name.trim() || "Untitled project";
       onOpenChange(false);
       reset();
-      onCreated?.(name);
+      onCreated?.(bundle);
     } finally {
       setCreating(false);
     }
@@ -168,8 +176,17 @@ export function NewProjectWizard({
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           ) : (
-            <Button size="sm" onClick={create} disabled={creating} className="webeazy-wizard-primary">
-              {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+            <Button
+              size="sm"
+              onClick={create}
+              disabled={creating}
+              className="webeazy-wizard-primary"
+            >
+              {creating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
               Create project
             </Button>
           )}

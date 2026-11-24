@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { migratePageDocument, websitePageSchema } from "./website-document.ts";
+import "../../components/hackathon/site-export.test.ts";
 
 const page = {
   schemaVersion: 2,
