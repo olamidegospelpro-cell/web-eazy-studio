@@ -10,6 +10,8 @@
 import { z } from "zod";
 import { PROJECT_SCHEMA_VERSION } from "./types";
 
+export { pageSchema } from "./website-document";
+
 const hexColor = z
   .string()
   .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, "Must be a hex color");
@@ -103,18 +105,6 @@ export const manifestSchema = z.object({
   }),
   app: z.object({ name: z.string(), version: z.string() }),
   extensions: z.record(z.unknown()).default({}),
-});
-
-export const pageSchema = z.object({
-  schemaVersion: z.number().int().positive(),
-  id: z.string().min(1),
-  name: z.string().min(1),
-  slug: z.string().min(1),
-  title: z.string().default(""),
-  description: z.string().default(""),
-  nodes: z.array(z.unknown()).default([]),
-  createdAt: z.string(),
-  lastModified: z.string(),
 });
 
 /** Newer major schema versions cannot be opened safely. */

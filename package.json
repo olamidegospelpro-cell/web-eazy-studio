@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "test": "tsc --strict --skipLibCheck --target ES2022 --module commonjs --moduleResolution node --rootDir src --outDir node_modules/.cache/webeazy-tests --types node --esModuleInterop --rewriteRelativeImportExtensions src/lib/project/website-document.test.ts && node node_modules/.cache/webeazy-tests/lib/project/website-document.test.js",
     "format": "prettier --write ."
   },
   "dependencies": {

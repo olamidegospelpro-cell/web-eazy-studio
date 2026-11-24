@@ -22,6 +22,8 @@ import { ProjectError, ProjectService, type CreateProjectInput } from "./project
 import { RecentProjectsService } from "./recents";
 import { StorageService, type SessionSnapshot } from "./storage";
 import { DEFAULT_PREFERENCES, nowIso } from "./defaults";
+import { migratePageDocument } from "./website-document";
+import { PROJECT_SCHEMA_VERSION } from "./types";
 import { notify } from "@/components/ds/toast";
 import type {
   AppPreferences,
@@ -75,7 +77,11 @@ export interface ProjectStore {
 
 const ProjectContext = createContext<ProjectStore | null>(null);
 
-function describe(error: unknown): { message: string; suggestion?: string; report?: ValidationReport } {
+function describe(error: unknown): {
+  message: string;
+  suggestion?: string;
+  report?: ValidationReport;
+} {
   if (error instanceof ProjectError)
     return { message: error.message, suggestion: error.suggestion, report: error.report };
   if (error instanceof FsError) return { message: error.message, suggestion: error.suggestion };
@@ -180,7 +186,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const chooseLocationFor = useCallback(async (name: string) => {
     const suggested = ProjectService.suggestFolderName(name);
-    if (FileSystemService.capabilities.nativePicker) return FileSystemService.chooseLocation(suggested);
+    if (FileSystemService.capabilities.nativePicker)
+      return FileSystemService.chooseLocation(suggested);
     return FileSystemService.virtualLocation(suggested);
   }, []);
 
@@ -263,7 +270,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       bundleRef.current = created;
       setLocation(null);
       locationRef.current = null;
-      changes.current = { theme: true, manifest: true, pageIds: new Set(created.pages.map((p) => p.id)) };
+      changes.current = {
+        theme: true,
+        manifest: true,
+        pageIds: new Set(created.pages.map((p) => p.id)),
+      };
       setDirtyFlag(true);
       setSaveState("dirty");
       setLastError(null);
@@ -288,6 +299,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         await RecentProjectsService.touch(opened, target);
         await refreshRecents();
         await StorageService.setSession({ savedAt: nowIso(), clean: true, bundle: opened });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("webeazy:project-opened", { detail: opened }));
+        }
         notify.success("Project opened", opened.manifest.name);
       } catch (error) {
         const described = describe(error);
@@ -431,19 +445,30 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const recoverSession = useCallback(async () => {
     const session = pendingRecovery;
     if (!session) return;
-    setBundle(session.bundle);
-    bundleRef.current = session.bundle;
-    const target = session.bundle.location ?? session.bundle.manifest.settings.location ?? null;
-    setLocation(target);
-    locationRef.current = target;
-    changes.current = {
-      theme: true,
-      manifest: true,
-      pageIds: new Set(session.bundle.pages.map((p) => p.id)),
-    };
-    setDirtyFlag(true);
-    setPendingRecovery(null);
-    notify.success("Session recovered", "Your unsaved work was restored.");
+    try {
+      const recovered: ProjectBundle = {
+        ...session.bundle,
+        manifest: { ...session.bundle.manifest, schemaVersion: PROJECT_SCHEMA_VERSION },
+        pages: session.bundle.pages.map((page) => migratePageDocument(page)),
+      };
+      setBundle(recovered);
+      bundleRef.current = recovered;
+      const target = recovered.location ?? recovered.manifest.settings.location ?? null;
+      setLocation(target);
+      locationRef.current = target;
+      changes.current = {
+        theme: true,
+        manifest: true,
+        pageIds: new Set(recovered.pages.map((page) => page.id)),
+      };
+      setDirtyFlag(true);
+      setPendingRecovery(null);
+      notify.success("Session recovered", "Your unsaved work was restored.");
+    } catch (error) {
+      const described = describe(error);
+      setLastError(described);
+      notify.error("Session recovery failed", described.message);
+    }
   }, [pendingRecovery, setDirtyFlag]);
 
   const discardSession = useCallback(async () => {

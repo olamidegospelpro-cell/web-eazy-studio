@@ -14,16 +14,10 @@
 
 export const APP_NAME = "WebEazy";
 export const APP_VERSION = "0.2.0";
-export const PROJECT_SCHEMA_VERSION = 1;
+export const PROJECT_SCHEMA_VERSION = 2;
 
 export type WebsiteType =
-  | "landing"
-  | "portfolio"
-  | "business"
-  | "blog"
-  | "docs"
-  | "store"
-  | "custom";
+  "landing" | "portfolio" | "business" | "blog" | "docs" | "store" | "custom";
 
 export const WEBSITE_TYPES: { value: WebsiteType; label: string; hint: string }[] = [
   { value: "landing", label: "Landing page", hint: "Single-page marketing site" },
@@ -156,16 +150,58 @@ export interface ProjectManifest {
  * ------------------------------------------------------------------ */
 
 export interface PageDocument {
-  schemaVersion: number;
+  schemaVersion: typeof PROJECT_SCHEMA_VERSION;
   id: string;
   name: string;
   slug: string;
   title: string;
   description: string;
-  /** Editor node tree — intentionally untyped until the editor milestone. */
-  nodes: unknown[];
+  documentType: "website";
+  breakpoints: { desktop: number; tablet: number; mobile: number };
+  nodes: WebsiteNode[];
   createdAt: string;
   lastModified: string;
+}
+
+export type WebsiteNodeType =
+  "heading" | "text" | "button" | "card" | "shape" | "image" | "section" | "container";
+
+export interface WebsiteNodeLayout {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface WebsiteNode {
+  id: string;
+  type: WebsiteNodeType;
+  name: string;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  background: string;
+  color: string;
+  radius: number;
+  locked: boolean;
+  src?: string;
+  href?: string;
+  fontSize?: number;
+  fontWeight?: number;
+  textAlign?: "left" | "center" | "right";
+  padding?: number;
+  shadow?: boolean;
+  border?: string;
+  lineHeight?: number;
+  parentId: string | null;
+  childIds: string[];
+  visible: boolean;
+  responsive?: {
+    tablet?: Partial<WebsiteNodeLayout>;
+    mobile?: Partial<WebsiteNodeLayout>;
+  };
 }
 
 /** Everything needed to render/edit a project in memory. */

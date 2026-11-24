@@ -27,6 +27,7 @@ import { ValidationService } from "./validation";
 import { manifestSchema, pageSchema, themeSchema } from "./schema";
 import { createDefaultTheme } from "./defaults";
 import { PROJECT_SCHEMA_VERSION } from "./types";
+import { migratePageDocument } from "./website-document";
 import type {
   PageDocument,
   ProjectBundle,
@@ -53,7 +54,10 @@ function wrap(error: unknown, fallback: string): ProjectError {
   if (error instanceof ProjectError) return error;
   if (error instanceof FsError) return new ProjectError(error.message, error.suggestion);
   console.error("[ProjectService]", error);
-  return new ProjectError(fallback, "Check that the project folder is still available, then try again.");
+  return new ProjectError(
+    fallback,
+    "Check that the project folder is still available, then try again.",
+  );
 }
 
 export interface CreateProjectInput {
@@ -139,6 +143,7 @@ export const ProjectService = {
 
     const manifest: ProjectManifest = {
       ...bundle.manifest,
+      schemaVersion: PROJECT_SCHEMA_VERSION,
       lastModified: nowIso(),
       settings: { ...bundle.manifest.settings, location },
       app: { ...APP_META },
@@ -174,8 +179,18 @@ export const ProjectService = {
     location: ProjectLocation,
     changed: { theme?: boolean; pageIds?: string[]; manifest?: boolean },
   ): Promise<ProjectBundle> {
+    const report = ValidationService.validateBundle(bundle);
+    if (!report.ok) {
+      throw new ProjectError(
+        "This project failed validation, so autosave did not write any files.",
+        "Fix the reported problems and save again.",
+        report,
+      );
+    }
+
     const manifest: ProjectManifest = {
       ...bundle.manifest,
+      schemaVersion: PROJECT_SCHEMA_VERSION,
       lastModified: nowIso(),
       settings: { ...bundle.manifest.settings, location },
     };
@@ -220,7 +235,9 @@ export const ProjectService = {
 
       let theme: ProjectTheme;
       if (await FileSystemService.exists(location, FILE_THEME)) {
-        const parsed = themeSchema.safeParse(await FileSystemService.readJson(location, FILE_THEME));
+        const parsed = themeSchema.safeParse(
+          await FileSystemService.readJson(location, FILE_THEME),
+        );
         theme = parsed.success ? (parsed.data as ProjectTheme) : createDefaultTheme();
       } else {
         theme = createDefaultTheme();
@@ -229,10 +246,20 @@ export const ProjectService = {
       const pages: PageDocument[] = [];
       for (const ref of manifest.pages) {
         const parsed = pageSchema.safeParse(await FileSystemService.readJson(location, ref.file));
-        if (parsed.success) pages.push(parsed.data as PageDocument);
+        if (!parsed.success) {
+          throw new ProjectError(
+            `Page "${ref.name}" is invalid and could not be opened.`,
+            "Restore the page from a project backup or correct its document data.",
+          );
+        }
+        pages.push(migratePageDocument(parsed.data));
       }
 
-      const healed = ValidationService.heal({ ...manifest, settings: { ...manifest.settings, location } }, theme, pages);
+      const healed = ValidationService.heal(
+        { ...manifest, settings: { ...manifest.settings, location } },
+        theme,
+        pages,
+      );
       return { ...healed, location };
     } catch (error) {
       throw wrap(error, "The project could not be read.");

@@ -5,6 +5,7 @@
  */
 export * from "./types";
 export * from "./defaults";
+export * from "./website-document";
 export { ProjectService, ProjectError, type CreateProjectInput } from "./project-service";
 export { ValidationService } from "./validation";
 export { TemplateService, type ProjectTemplate } from "./templates";

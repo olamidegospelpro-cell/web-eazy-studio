@@ -82,6 +82,8 @@ export function createPage(name: string, opts?: { isHome?: boolean }): PageDocum
     slug,
     title: name,
     description: "",
+    documentType: "website",
+    breakpoints: { desktop: 1120, tablet: 760, mobile: 390 },
     nodes: [],
     createdAt: ts,
     lastModified: ts,
