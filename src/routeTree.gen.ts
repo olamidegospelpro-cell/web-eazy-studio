@@ -9,25 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as PluginsRouteImport } from './routes/plugins'
-import { Route as DesignSystemRouteImport } from './routes/design-system'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as PluginsRouteImport } from './routes/plugins'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ApiWebeazyAiRouteImport } from './routes/api/webeazy-ai'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PluginsRoute = PluginsRouteImport.update({
-  id: '/plugins',
-  path: '/plugins',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignSystemRoute = DesignSystemRouteImport.update({
-  id: '/design-system',
-  path: '/design-system',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -35,9 +26,24 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PluginsRoute = PluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebeazyAiRoute = ApiWebeazyAiRouteImport.update({
+  id: '/api/webeazy-ai',
+  path: '/api/webeazy-ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
+  '/api/webeazy-ai': typeof ApiWebeazyAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
+  '/api/webeazy-ai': typeof ApiWebeazyAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
+  '/api/webeazy-ai': typeof ApiWebeazyAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/design-system'
+    | '/plugins'
+    | '/settings'
+    | '/api/webeazy-ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/design-system' | '/plugins' | '/settings'
-  id: '__root__' | '/' | '/about' | '/design-system' | '/plugins' | '/settings'
+  to:
+    | '/'
+    | '/about'
+    | '/design-system'
+    | '/plugins'
+    | '/settings'
+    | '/api/webeazy-ai'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/design-system'
+    | '/plugins'
+    | '/settings'
+    | '/api/webeazy-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,29 +105,16 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   PluginsRoute: typeof PluginsRoute
   SettingsRoute: typeof SettingsRoute
+  ApiWebeazyAiRoute: typeof ApiWebeazyAiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plugins': {
-      id: '/plugins'
-      path: '/plugins'
-      fullPath: '/plugins'
-      preLoaderRoute: typeof PluginsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design-system': {
-      id: '/design-system'
-      path: '/design-system'
-      fullPath: '/design-system'
-      preLoaderRoute: typeof DesignSystemRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -109,11 +124,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugins': {
+      id: '/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof PluginsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webeazy-ai': {
+      id: '/api/webeazy-ai'
+      path: '/api/webeazy-ai'
+      fullPath: '/api/webeazy-ai'
+      preLoaderRoute: typeof ApiWebeazyAiRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   PluginsRoute: PluginsRoute,
   SettingsRoute: SettingsRoute,
+  ApiWebeazyAiRoute: ApiWebeazyAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
